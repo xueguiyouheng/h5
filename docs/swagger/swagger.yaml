@@ -1,0 +1,2502 @@
+basePath: /api
+definitions:
+  models.AddManyToCartRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.CartAddItem'
+        type: array
+    required:
+    - items
+    type: object
+  models.AddToCartRequest:
+    properties:
+      product_id:
+        type: string
+      qty:
+        type: integer
+    required:
+    - product_id
+    type: object
+  models.AddressRequest:
+    properties:
+      as_default:
+        type: boolean
+      detail:
+        type: string
+      label:
+        type: string
+    type: object
+  models.AdminOrderCancelRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  models.AdminOrderRemarkRequest:
+    properties:
+      admin_remark:
+        type: string
+    type: object
+  models.AdminOrderShippingRequest:
+    properties:
+      courier_name:
+        type: string
+      courier_phone:
+        type: string
+      tracking_no:
+        type: string
+    type: object
+  models.AdminOrderStatusRequest:
+    properties:
+      note:
+        type: string
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  models.ApiResponse:
+    properties:
+      code:
+        description: HTTP 状态码
+        type: integer
+      data:
+        description: 业务数据，类型根据接口而定
+        type: object
+      message:
+        description: 提示信息，如 "success" 或错误描述
+        type: string
+    type: object
+  models.CarouselRequest:
+    properties:
+      image_url:
+        type: string
+      link:
+        type: string
+      sort:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+    required:
+    - image_url
+    - title
+    type: object
+  models.CartAddItem:
+    properties:
+      product_id:
+        type: string
+      qty:
+        type: integer
+    required:
+    - product_id
+    type: object
+  models.CartSelectionRequest:
+    properties:
+      all:
+        type: boolean
+      item_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  models.CategoryRequest:
+    properties:
+      image_url:
+        type: string
+      name:
+        type: string
+      sort:
+        type: integer
+      status:
+        type: string
+      subcategories:
+        items:
+          $ref: '#/definitions/models.SubcategoryRequest'
+        type: array
+    required:
+    - name
+    type: object
+  models.ChatRequest:
+    properties:
+      content_type:
+        type: string
+      media_name:
+        description: 图片消息随带原始文件名与字节数，前端气泡要展示「图片 · 名称 大小 KB」
+        type: string
+      media_size:
+        type: integer
+      media_url:
+        type: string
+      text:
+        type: string
+    type: object
+  models.CheckoutPreviewRequest:
+    properties:
+      address_id:
+        type: string
+      item_ids:
+        items:
+          type: string
+        type: array
+      voucher_id:
+        type: string
+    type: object
+  models.CreateOrderRequest:
+    properties:
+      address_id:
+        type: string
+      item_ids:
+        items:
+          type: string
+        type: array
+      payment_method:
+        type: string
+      remark:
+        type: string
+      voucher_id:
+        type: string
+    type: object
+  models.FavoriteRemoveRequest:
+    properties:
+      product_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - product_ids
+    type: object
+  models.FavoriteRequest:
+    properties:
+      product_id:
+        type: string
+    required:
+    - product_id
+    type: object
+  models.LanguageRequest:
+    properties:
+      language:
+        type: string
+    required:
+    - language
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        description: 邮箱，语义同上
+        type: string
+      password:
+        description: 密码，必填
+        type: string
+      username:
+        description: 用户名或邮箱
+        type: string
+    required:
+    - password
+    type: object
+  models.Nutrition:
+    properties:
+      calories:
+        type: integer
+      per:
+        type: string
+    type: object
+  models.ProductRequest:
+    properties:
+      badge:
+        type: string
+      category_id:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      image_url:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      nutrition:
+        $ref: '#/definitions/models.Nutrition'
+        type: object
+      old_price:
+        type: string
+      price:
+        type: string
+      sections:
+        items:
+          type: string
+        type: array
+      sort:
+        type: integer
+      status:
+        type: string
+      stock:
+        type: integer
+      subcategory_id:
+        type: string
+      unit:
+        type: string
+    required:
+    - category_id
+    - image_url
+    - name
+    - price
+    type: object
+  models.RatingRequest:
+    properties:
+      value:
+        type: integer
+    required:
+    - value
+    type: object
+  models.ReadRequest:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+    type: object
+  models.RedeemRequest:
+    properties:
+      code:
+        type: string
+    required:
+    - code
+    type: object
+  models.RegisterRequest:
+    properties:
+      account_type:
+        type: string
+      email:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      mobile:
+        type: string
+      password:
+        type: string
+      store_address:
+        type: string
+      store_name:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - mobile
+    - password
+    - username
+    type: object
+  models.ResetPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  models.ResetVerifyRequest:
+    properties:
+      code:
+        type: string
+      new_password:
+        type: string
+    required:
+    - code
+    - new_password
+    type: object
+  models.SetQtyRequest:
+    properties:
+      qty:
+        type: integer
+    type: object
+  models.StatusRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  models.StoreProfileRequest:
+    properties:
+      address:
+        type: string
+      delivery_radius_km:
+        type: integer
+      description:
+        type: string
+      latitude:
+        type: number
+      logo_url:
+        type: string
+      longitude:
+        type: number
+      min_order_amount:
+        type: string
+      name:
+        type: string
+      notice:
+        type: string
+      phone:
+        type: string
+      status:
+        type: string
+    type: object
+  models.StoreSelectionRequest:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+      store_id:
+        type: string
+    required:
+    - store_id
+    type: object
+  models.SubcategoryRequest:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      sort:
+        type: integer
+    required:
+    - name
+    type: object
+  models.UpdateMemberRequest:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      gender:
+        type: string
+      mobile:
+        type: string
+      old_password:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.VoteRequest:
+    properties:
+      helpful:
+        type: boolean
+    required:
+    - helpful
+    type: object
+  payment.LaunchRequest:
+    properties:
+      outcome:
+        type: string
+    type: object
+  payment.MockNotifyRequest:
+    properties:
+      outcome:
+        type: string
+    type: object
+  payment.PrepayRequest:
+    properties:
+      order_id:
+        type: string
+      provider:
+        type: string
+    required:
+    - order_id
+    - provider
+    type: object
+info:
+  contact: {}
+  description: |-
+    商城前端与运营中台共用的后端接口。响应统一信封 {code,message,data}；
+    认证为 HttpOnly Cookie sso_token，写操作需回传 X-CSRF-Token。
+    文档生成：swag init -g main.go -o docs/swagger，访问 /swagger/index.html
+  license: {}
+  title: FreshMart 生鲜商城 API
+  version: "1.0"
+paths:
+  /api/addresses:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 收货地址列表
+      tags:
+      - address
+    post:
+      consumes:
+      - application/json
+      description: 首条地址自动设为默认
+      parameters:
+      - description: 标签与详细地址
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddressRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 新增收货地址
+      tags:
+      - address
+  /api/addresses/{id}:
+    delete:
+      description: 删除默认地址后服务端回退到列表第一条
+      parameters:
+      - description: 地址 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 删除收货地址
+      tags:
+      - address
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: 地址 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 标签与详细地址
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddressRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 编辑收货地址
+      tags:
+      - address
+  /api/addresses/{id}/default:
+    put:
+      parameters:
+      - description: 地址 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 设为默认收货地址
+      tags:
+      - address
+  /api/admin/carousel:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 轮播配置列表（本店）
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 轮播内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CarouselRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 新增轮播配置
+      tags:
+      - admin
+  /api/admin/carousel/{id}:
+    delete:
+      parameters:
+      - description: 轮播 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 删除轮播配置
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 轮播 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 轮播内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CarouselRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 编辑轮播配置
+      tags:
+      - admin
+  /api/admin/categories:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 20
+        in: query
+        name: page_size
+        type: integer
+      - description: 名称模糊搜索
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 类目分页列表（本店）
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 类目内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 新增类目及其子类目
+      tags:
+      - admin
+  /api/admin/categories/{id}:
+    delete:
+      description: 类目下仍有商品时返回 422
+      parameters:
+      - description: 类目 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 删除类目
+      tags:
+      - admin
+    get:
+      parameters:
+      - description: 类目 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 类目详情（含子类目）
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      description: subcategories 为全量替换，未传则保持原子类目
+      parameters:
+      - description: 类目 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 类目内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 编辑类目
+      tags:
+      - admin
+  /api/admin/orders:
+    get:
+      description: status 为空查全部；keyword 命中单号 / 收货人 / 手机号
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 10
+        in: query
+        name: page_size
+        type: integer
+      - description: 单号 / 收货人 / 手机号
+        in: query
+        name: keyword
+        type: string
+      - description: accepted / ready / delivered / cancelled
+        in: query
+        name: status
+        type: string
+      - description: unpaid / paid
+        in: query
+        name: payment_status
+        type: string
+      - description: 起始时间 RFC3339
+        in: query
+        name: since
+        type: string
+      - description: 结束时间 RFC3339
+        in: query
+        name: until
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 订单分页列表（本店）
+      tags:
+      - admin
+  /api/admin/orders/{id}:
+    get:
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 订单详情（含支付单与处理留痕）
+      tags:
+      - admin
+  /api/admin/orders/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: 回补库存与优惠券；已支付订单标记 refund_status=pending 走线下退款
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 取消原因
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdminOrderCancelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 商家取消订单
+      tags:
+      - admin
+  /api/admin/orders/{id}/remark:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 备注内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdminOrderRemarkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 编辑商家备注
+      tags:
+      - admin
+  /api/admin/orders/{id}/shipping:
+    put:
+      consumes:
+      - application/json
+      description: 自配送填骑手与电话，快递填运单号；留空即清除对应字段
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 配送信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdminOrderShippingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 填写配送信息
+      tags:
+      - admin
+  /api/admin/orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: accepted → ready → delivered，ready 可退回 accepted；未支付订单返回 422
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 目标状态与备注
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdminOrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 推进订单状态
+      tags:
+      - admin
+  /api/admin/orders/summary:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 订单各状态计数与今日概览
+      tags:
+      - admin
+  /api/admin/products:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 20
+        in: query
+        name: page_size
+        type: integer
+      - description: 名称模糊搜索
+        in: query
+        name: keyword
+        type: string
+      - description: 按类目过滤
+        in: query
+        name: category_id
+        type: string
+      - description: on / off
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 商品分页列表（本店）
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: 图片先走 POST /api/uploads 拿到 URL，商品文档只保存 URL
+      parameters:
+      - description: 商品内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 发布商品
+      tags:
+      - admin
+  /api/admin/products/{id}:
+    delete:
+      parameters:
+      - description: 商品 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 删除商品
+      tags:
+      - admin
+    get:
+      parameters:
+      - description: 商品 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 商品详情
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 商品 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 商品内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 编辑商品
+      tags:
+      - admin
+  /api/admin/products/{id}/status:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 商品 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: on / off
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.StatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 商品上下架
+      tags:
+      - admin
+  /api/admin/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 中台首页计数（本店）
+      tags:
+      - admin
+  /api/admin/store:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 门店资料
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      description: 字段为空表示不修改；status 为 open / closed，休息中的门店买家侧不可选
+      parameters:
+      - description: 门店资料
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.StoreProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 编辑门店资料
+      tags:
+      - admin
+  /api/auth/password/reset:
+    post:
+      consumes:
+      - application/json
+      description: 邮箱不存在同样返回成功，避免账号枚举
+      parameters:
+      - description: 邮箱
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      summary: 发起找回密码
+      tags:
+      - account
+  /api/auth/password/reset-verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 验证码与新密码
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      summary: 校验重置验证码
+      tags:
+      - account
+  /api/cart:
+    delete:
+      description: 其他门店的行车保留，切回那家店仍在
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 清空当前门店的购物车
+      tags:
+      - cart
+    get:
+      description: 运费与优惠由服务端计算；只回当前门店的行，可带 voucher_id 试算券后价
+      parameters:
+      - description: 试用的优惠券 ID
+        in: query
+        name: voucher_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 购物车与金额汇总
+      tags:
+      - cart
+  /api/cart/checkout-preview:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 地址、优惠券与结算行
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CheckoutPreviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 结算页试算
+      tags:
+      - cart
+  /api/cart/items:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 商品与数量
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddToCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 加入购物车
+      tags:
+      - cart
+  /api/cart/items/{id}:
+    delete:
+      parameters:
+      - description: 商品 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 删除购物车行项目
+      tags:
+      - cart
+    patch:
+      consumes:
+      - application/json
+      description: qty 为 0 时等价于删除该行
+      parameters:
+      - description: 商品 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 数量
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SetQtyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 修改购物车数量
+      tags:
+      - cart
+  /api/cart/items/batch:
+    post:
+      consumes:
+      - application/json
+      description: 一次读改写整张车；任一条不合规（下架 / 库存不足 / 跨门店）整批不生效
+      parameters:
+      - description: 商品与数量列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddManyToCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 批量加入购物车
+      tags:
+      - cart
+  /api/cart/selection:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 全选标记或行项目 ID 列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CartSelectionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 更新购物车勾选
+      tags:
+      - cart
+  /api/chat/messages:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 清空客服会话
+      tags:
+      - chat
+    get:
+      parameters:
+      - description: RFC3339 时间游标
+        in: query
+        name: cursor
+        type: string
+      - description: 条数，默认 30
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 客服会话历史
+      tags:
+      - chat
+    post:
+      consumes:
+      - application/json
+      description: 关键词命中逻辑与客服时段判定都在服务端，前端只负责打字动画
+      parameters:
+      - description: 文本或图片消息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 发送客服消息并拿到自动回复
+      tags:
+      - chat
+  /api/help/faqs:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: FAQ 列表与客服联系方式
+      tags:
+      - help
+  /api/help/faqs/{id}/vote:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: FAQ ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: helpful
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.VoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: FAQ 是否有用投票
+      tags:
+      - help
+  /api/legal/{key}:
+    get:
+      parameters:
+      - description: terms 或 privacy
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      summary: 条款/隐私文案
+      tags:
+      - account
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: 账号可以是 SSO 用户名，也可以是商城会员邮箱/用户名；成功后写入 sso_token 与 sso_csrf
+      parameters:
+      - description: 账号与密码
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "401":
+          description: 用户名或密码错误
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      summary: 登录并签发会话 Cookie
+      tags:
+      - auth
+  /api/logout:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 登出
+      tags:
+      - auth
+  /api/notifications:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 20
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 站内通知分页列表
+      tags:
+      - notification
+  /api/notifications/read:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 通知 ID 列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReadRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 标记通知已读
+      tags:
+      - notification
+  /api/notifications/read-all:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 全部通知标记已读
+      tags:
+      - notification
+  /api/notifications/unread-count:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 未读通知数量
+      tags:
+      - notification
+  /api/onboarding/complete:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 标记引导页已完成
+      tags:
+      - account
+  /api/onboarding/slides:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      summary: 引导页文案与真实统计
+      tags:
+      - account
+  /api/orders:
+    get:
+      parameters:
+      - description: ongoing / history
+        in: query
+        name: tab
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 6
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 订单列表
+      tags:
+      - order
+    post:
+      consumes:
+      - application/json
+      description: 结算当前门店购物车的勾选行（或 item_ids），扣库存、占用优惠券并清空对应行
+      parameters:
+      - description: 地址、优惠券与结算行
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "422":
+          description: 购物车为空 / 未达券门槛 / 无收货地址
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 提交订单
+      tags:
+      - order
+  /api/orders/{id}:
+    get:
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 订单详情
+      tags:
+      - order
+  /api/orders/{id}/cancel:
+    post:
+      description: 回补库存并退回优惠券
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 取消订单
+      tags:
+      - order
+  /api/orders/{id}/track:
+    get:
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 订单物流轨迹
+      tags:
+      - order
+  /api/payment/launch/{id}:
+    post:
+      consumes:
+      - application/json
+      description: 按支付单渠道与请求 UA 返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道）/ jsapi（微信内置浏览器）/
+        qrcode（桌面兜底）
+      parameters:
+      - description: 支付单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 模拟渠道可选的收款结果，真实渠道忽略
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/payment.LaunchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "409":
+          description: 订单已支付
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 唤起支付
+      tags:
+      - payment
+  /api/payment/mock-notify/{id}:
+    post:
+      consumes:
+      - application/json
+      description: 仅 PAY_PROVIDER=mock 可用；真实渠道的回调走公网免登录路由并由渠道验签
+      parameters:
+      - description: 支付单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 回调结果 success / failed
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/payment.MockNotifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "422":
+          description: 支付单已关闭 / 金额不一致
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 模拟支付回调
+      tags:
+      - payment
+  /api/payment/mock/launch:
+    get:
+      description: 仅 PAY_PROVIDER=mock 可用；结算后 302 回前端支付结果页
+      parameters:
+      - description: 支付单 ID
+        in: query
+        name: payment_id
+        required: true
+        type: string
+      - description: 收款结果 success / failed
+        in: query
+        name: outcome
+        type: string
+      responses:
+        "302":
+          description: 重定向到支付结果页
+          schema:
+            type: string
+      summary: 模拟渠道唤起落点
+      tags:
+      - payment
+  /api/payment/notify/{provider}:
+    post:
+      description: 支付宝与微信服务器直接投递，验签不过一律失败应答，由渠道按策略重投
+      parameters:
+      - description: 渠道 alipay / wechat
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: success 或 {\"code\":\"SUCCESS\"}
+          schema:
+            type: string
+      summary: 支付渠道异步回调
+      tags:
+      - payment
+  /api/payment/prepay:
+    post:
+      consumes:
+      - application/json
+      description: 为待支付订单建支付单；同订单同渠道存在未过期的 pending 支付单时复用返回
+      parameters:
+      - description: 订单 ID 与支付渠道 alipay / wechat
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/payment.PrepayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "409":
+          description: 订单已支付
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 发起支付
+      tags:
+      - payment
+  /api/payment/query/{id}:
+    get:
+      description: 前端轮询用；超时的 pending 支付单会在读取时惰性置为 closed
+      parameters:
+      - description: 支付单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 支付单查询
+      tags:
+      - payment
+  /api/profile:
+    get:
+      description: 用于前端登录态探测与 Profile 页头部；is_admin 表示该账号名下有门店，可进运营中台；account_type
+        为 buyer/merchant
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "401":
+          description: 未登录或登录已失效
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 当前登录会员资料
+      tags:
+      - account
+    put:
+      consumes:
+      - application/json
+      description: 只传需要修改的字段；修改密码必须带 old_password
+      parameters:
+      - description: 资料字段
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 修改会员资料
+      tags:
+      - account
+  /api/profile/completeness:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 资料完整度
+      tags:
+      - account
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: 校验口径与前端 validateProfileField 一致；密码以 bcrypt 存储；account_type 为 merchant
+        时同步建门店并把类型落库到账号
+      parameters:
+      - description: 注册信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "400":
+          description: 字段校验失败
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "409":
+          description: 邮箱或手机号已被注册
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      summary: 注册商城会员
+      tags:
+      - account
+  /api/settings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 读取语言与评分
+      tags:
+      - account
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 语言设置
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.LanguageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 更新界面语言
+      tags:
+      - account
+  /api/settings/ratings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 评分值
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.RatingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 提交星级评分
+      tags:
+      - account
+  /api/shop/carousel:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 首页轮播图列表（当前门店，仅启用项，按 sort 倒序）
+      tags:
+      - shop
+  /api/shop/categories:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 8
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 一级类目列表（当前门店）
+      tags:
+      - shop
+  /api/shop/categories/{category_id}:
+    get:
+      parameters:
+      - description: 类目 ID
+        in: path
+        name: category_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "404":
+          description: 类目不存在
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 类目详情
+      tags:
+      - shop
+  /api/shop/favorites:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 商品 ID 列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.FavoriteRemoveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 批量取消收藏
+      tags:
+      - shop
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 商品 ID
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.FavoriteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "404":
+          description: 商品不存在
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 切换商品收藏
+      tags:
+      - shop
+  /api/shop/home:
+    get:
+      parameters:
+      - description: 推荐流页码，默认 1
+        in: query
+        name: recommend_page
+        type: integer
+      - description: 推荐流每页，默认 10
+        in: query
+        name: recommend_page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 首页聚合（问候/轮播/运营版块/推荐分页）
+      tags:
+      - shop
+  /api/shop/products:
+    get:
+      description: q 关键词、category_id+subcategory 类目、section 运营版块、favorite=true 只回会员收藏的商品
+      parameters:
+      - description: 关键词，匹配商品名与描述
+        in: query
+        name: q
+        type: string
+      - description: 类目 ID
+        in: query
+        name: category_id
+        type: string
+      - description: 子类目名称
+        in: query
+        name: subcategory
+        type: string
+      - description: 运营版块 exclusive_offer / best_selling / recommend
+        in: query
+        name: section
+        type: string
+      - description: true 时只回当前会员收藏过的商品
+        in: query
+        name: favorite
+        type: boolean
+      - description: sales 按销量倒序，留空按运营排序
+        in: query
+        name: sort
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 10
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 商品列表（搜索 / 类目 / 版块 / 收藏共用）
+      tags:
+      - shop
+  /api/shop/products/{product_id}:
+    get:
+      parameters:
+      - description: 商品 ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "404":
+          description: 商品不存在
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 商品详情与相关推荐
+      tags:
+      - shop
+  /api/shop/search/hot:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 热搜词与热门类目（当前门店）
+      tags:
+      - shop
+  /api/shop/stores/nearby:
+    get:
+      description: 经纬度缺省用会员最近一次定位；超配送半径的行标 out_of_range
+      parameters:
+      - description: 买家经度
+        in: query
+        name: longitude
+        type: number
+      - description: 买家纬度
+        in: query
+        name: latitude
+        type: number
+      - description: 门店名关键词
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 附近的门店
+      tags:
+      - shop
+  /api/shop/stores/selection:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 门店 ID 与最近一次定位
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.StoreSelectionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "404":
+          description: 门店不存在
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "422":
+          description: 门店休息中
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 切换当前门店
+      tags:
+      - shop
+  /api/support/status:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      summary: 客服是否在线
+      tags:
+      - chat
+  /api/uploads:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 24
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 素材库分页
+      tags:
+      - upload
+    post:
+      consumes:
+      - multipart/form-data
+      description: multipart/form-data，字段名 file；落 uploads/YYYYMM/ 并由静态目录托管，数据库只存 URL
+      parameters:
+      - description: 图片文件，最大 5MB
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "400":
+          description: 文件缺失 / 超大 / 类型不支持
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 图片上传
+      tags:
+      - upload
+  /api/uploads/{id}:
+    delete:
+      parameters:
+      - description: 素材 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 删除素材
+      tags:
+      - upload
+  /api/users:
+    get:
+      parameters:
+      - description: 页码，默认 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 10，上限 100
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 后台用户列表（演示模块）
+      tags:
+      - admin-users
+  /api/users/{id}:
+    get:
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 后台用户详情（演示模块）
+      tags:
+      - admin-users
+  /api/vouchers:
+    get:
+      parameters:
+      - description: 购物车选中金额，用于计算 usable / gap_amount
+        in: query
+        name: amount
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 我的券包
+      tags:
+      - voucher
+  /api/vouchers/available:
+    get:
+      parameters:
+      - description: 购物车选中金额
+        in: query
+        name: amount
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 按购物车金额判断可用券
+      tags:
+      - voucher
+  /api/vouchers/redeem:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 兑换码
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.RedeemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "400":
+          description: 兑换码无效
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+        "409":
+          description: 该兑换码已领取
+          schema:
+            $ref: '#/definitions/models.ApiResponse'
+      security:
+      - CookieAuth: []
+      summary: 兑换码领取优惠券
+      tags:
+      - voucher
+schemes:
+- http
+- https
+securityDefinitions:
+  CookieAuth:
+    in: cookie
+    name: sso_token
+    type: apiKey
+swagger: "2.0"

@@ -1,0 +1,30 @@
+# 依赖与构建产物
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 运行时上传的图片（seed 种子素材要入库，故白名单）
+/uploads/*
+!/uploads/seed
+
+# 本地环境变量与密钥：只允许 .env.example 进仓库
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 日志
+*.log
+logs/
+
+# 本地工具与编辑器状态
+.qoder/
+.vscode/
+.idea/
+.DS_Store
+
+# Go 编译产物
+/go-gin
+/go-gin-dev
+*.test

@@ -1,0 +1,218 @@
+.userlist-container {
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.userlist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand .logo {
+  font-size: 24px;
+}
+
+.brand h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.logout-btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #667eea;
+  background: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.logout-btn:hover {
+  background: #f0f0f0;
+}
+
+.userlist-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.page-title {
+  margin-bottom: 20px;
+}
+
+.page-title h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 4px;
+}
+
+.page-title .subtitle {
+  font-size: 13px;
+  color: #888;
+}
+
+.error-banner {
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #cf1322;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: #888;
+  font-size: 14px;
+}
+
+.table-wrap {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table th,
+.user-table td {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.user-table thead {
+  background: #fafbfc;
+}
+
+.user-table th {
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #eee;
+}
+
+.user-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s;
+}
+
+.user-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.user-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.user-table .username {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.user-table .time {
+  color: #888;
+  font-size: 13px;
+}
+
+.user-table .empty-row {
+  text-align: center;
+  color: #aaa;
+  padding: 40px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #667eea;
+  background: #eef1ff;
+  border-radius: 12px;
+}
+
+.tags .empty {
+  color: #ccc;
+}
+
+.status {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 10px;
+}
+
+.status.active {
+  color: #52c41a;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+
+.status.inactive {
+  color: #ff4d4f;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.pagination button {
+  padding: 6px 16px;
+  font-size: 13px;
+  color: #667eea;
+  background: #fff;
+  border: 1px solid #667eea;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pagination button:hover:not(:disabled) {
+  color: #fff;
+  background: #667eea;
+}
+
+.pagination button:disabled {
+  color: #ccc;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 13px;
+  color: #666;
+}
