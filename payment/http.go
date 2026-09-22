@@ -16,15 +16,27 @@ import (
 // 会员体系属于商城，本模块只要一个 ID，不 import 会员/鉴权代码
 type MemberFunc func(ctx *gin.Context) (string, error)
 
+// Payer 该会员在各渠道的付款人标识
+// 渠道用它定位「钱从谁的账户扣」，因此只能由服务端按会员档案给出
+type Payer struct {
+	WxOpenID     string
+	AlipayUserID string
+}
+
+// PayerFunc 按会员 ID 取付款人标识
+// 没有这一层就等于让客户端自报付款人身份——传别人的 openid 是在替别人挑钱包
+type PayerFunc func(memberID string) (Payer, error)
+
 // Module 支付模块实例
 type Module struct {
 	svc      *Service
 	memberID MemberFunc
+	payer    PayerFunc
 }
 
-// NewModule 组装模块：订单适配器与会员解析都由外层注入，便于换端与换商城复用同一套支付
-func NewModule(orders OrderGateway, memberID MemberFunc) *Module {
-	return &Module{svc: NewService(orders), memberID: memberID}
+// NewModule 组装模块：订单适配器、会员解析与付款人解析都由外层注入，便于换端与换商城复用同一套支付
+func NewModule(orders OrderGateway, memberID MemberFunc, payer PayerFunc) *Module {
+	return &Module{svc: NewService(orders), memberID: memberID, payer: payer}
 }
 
 // RegisterMember 在需登录分组下注册支付接口
@@ -100,11 +112,12 @@ func (m *Module) query(ctx *gin.Context) {
 
 // launch 唤起支付
 // @Summary 唤起支付
-// @Description 按支付单渠道与请求 UA 返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道）/ jsapi（微信内置浏览器）/ qrcode（桌面兜底）
+// @Description 按支付单渠道与发起端（X-Client，H5 再看 UA）返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道）/ jsapi（微信小程序、微信内置浏览器）/ qrcode（桌面兜底）
 // @Tags payment
 // @Accept json
 // @Produce json
 // @Security CookieAuth
+// @Param X-Client header string false "发起端 h5 / mp_wechat / mp_alipay / app，缺省 h5；渠道据此选收款产品"
 // @Param id path string true "支付单 ID"
 // @Param body body payment.LaunchRequest true "模拟渠道可选的收款结果，真实渠道忽略"
 // @Success 200 {object} models.ApiResponse{data=payment.Launch}
@@ -120,10 +133,17 @@ func (m *Module) launch(ctx *gin.Context) {
 	if ctx.Request.ContentLength > 0 && !bindJSON(ctx, &req) {
 		return
 	}
+	payer, err := m.payer(memberID)
+	if err != nil {
+		writeError(ctx, err)
+		return
+	}
 	data, err := m.svc.Launch(memberID, ctx.Param("id"), LaunchEnv{
-		UserAgent:   ctx.Request.UserAgent(),
-		OpenID:      ctx.Query("openid"),
-		MockOutcome: req.Outcome,
+		Client:       clientOf(ctx),
+		UserAgent:    ctx.Request.UserAgent(),
+		OpenID:       payer.WxOpenID,
+		AlipayUserID: payer.AlipayUserID,
+		MockOutcome:  req.Outcome,
 	})
 	if err != nil {
 		writeError(ctx, err)
@@ -199,6 +219,17 @@ func (m *Module) notify(ctx *gin.Context) {
 	}
 	status, contentType, body := NotifyAck(provider, err)
 	ctx.Data(status, contentType, []byte(body))
+}
+
+// clientOf 发起端标识，未知取值一律回落 H5
+// 不能让一个拼错的头改变收款产品：产品选择是渠道侧硬约束，回落至少保住浏览器这条路
+func clientOf(ctx *gin.Context) string {
+	switch v := ctx.GetHeader("X-Client"); v {
+	case ClientMPWechat, ClientMPAlipay, ClientApp:
+		return v
+	default:
+		return ClientH5
+	}
 }
 
 // bindJSON 统一处理请求体解析错误

@@ -71,7 +71,7 @@
 
 ## 3. 后端改造
 
-### 3.1 P2a 端标识与凭证载体（1.5 人日）
+### 3.1 P2a 端标识与凭证载体（1.5 人日）— ✅ 2026-09-22 已完成
 
 **(1) CSRF 按载体分流 —— 换端的第一道墙**
 
@@ -79,30 +79,46 @@
 
 改法（**不往白名单加路由**）：
 
-- `middleware/jwt.go`：`extractToken` 命中 Cookie 时 `c.Set("authCarrier","cookie")`，命中 Bearer 时 `c.Set("authCarrier","bearer")`。
-- `middleware/csrf.go`：写操作中 `authCarrier == "bearer"` → 直接 `c.Next()`。
+- `middleware/jwt.go`：`extractToken` 改为同时回令牌与载体（`CarrierCookie` / `CarrierBearer` / `CarrierNone`），新增导出 `TokenCarrier(c)` 复用同一份判定。
+- `middleware/csrf.go`：写操作在豁免判断之后、Cookie 校验之前插入 `if TokenCarrier(c) == CarrierBearer { c.Next(); return }`。
 
-安全性论证（写进注释）：double-submit cookie 存在的唯一理由是**浏览器会自动携带 Cookie**，攻击者无法读取但能迫使发出；`Authorization` 头不会被跨站自动携带，因此对 Bearer 请求这一防线无攻击面。Cookie 会话路径的校验逻辑一字不改。
+> ⚠️ 落地时对本文原方案做了一处必要修正：原写「jwt.go `c.Set("authCarrier")`，csrf.go 读这个 key」，但 `routers/router.go` 里 CORS/CSRF/Response 是**全局**中间件、`JWTAuthMiddleware` 只挂在 `protected` 分组上 —— CSRF 跑在 JWT **之前**，读不到鉴权阶段写的 context。因此载体判定做成不依赖执行顺序的纯函数 `TokenCarrier(c)`，与 `extractToken` 同源同口径（Cookie 优先，只有「无 Cookie 且带 Bearer」才算 bearer）。
+
+安全性论证（已写进注释）：double-submit cookie 存在的唯一理由是**浏览器会自动携带 Cookie**，攻击者无法读取但能迫使发出；`Authorization` 头不会被跨站自动携带，因此对 Bearer 请求这一防线无攻击面。**Cookie 会话路径的校验逻辑一字不改**；同时带 Cookie 与 Bearer 时按 Cookie 处理（fail-closed），实测仍 403。
 
 **(2) 端标识显式化，不再靠 UA 嗅探**
 
-- `payment/launch.go`：`LaunchEnv` 增 `Client string`，常量 `ClientH5` / `ClientMPWechat` / `ClientMPAlipay` / `ClientApp`。
-- `payment/http.go:123-127`：从 `X-Client` 头读，缺省 `h5`。
-- `payment/wechat.go:98-103` 的分流条件由 `IsWechatBrowser(env.UserAgent)` 改为 `env.Client == ClientMPWechat || IsWechatBrowser(env.UserAgent)`。原因：小程序请求的 UA 不可依赖，JSAPI 必须按端**强制**，否则可能被判成 H5 并回一个跳不出去的 `redirect`。`IsWechatBrowser` 保留给 H5 内部浏览器场景。
+- `payment/launch.go`：`LaunchEnv` 增 `Client string`，常量 `ClientH5` / `ClientMPWechat` / `ClientMPAlipay` / `ClientApp`（取值与 `X-Client` 头字面量一致）。
+- `payment/http.go`：新增 `clientOf(ctx)` 从 `X-Client` 读，**未知取值一律回落 `h5`**（拼错的头不能改变收款产品）。CORS 的 `Access-Control-Allow-Headers` 加 `X-Client`。
+- `payment/wechat.go` 的分流条件由 `IsWechatBrowser(env.UserAgent)` 改为 `env.Client == ClientMPWechat || IsWechatBrowser(env.UserAgent)`。原因：小程序请求的 UA 不可依赖，JSAPI 必须按端**强制**，否则可能被判成 H5 并回一个跳不出去的 `redirect`。`IsWechatBrowser` 保留给 H5 内部浏览器场景。
 
 **(3) openid 不许由客户端自报**
 
-- 现状：`payment/http.go:125` 是 `OpenID: ctx.Query("openid")` —— 信任客户端传入的付款人身份。H5 场景没有 openid 所以没暴露，小程序一接就是真问题。
-- 改法：`payment/http.go` 的 `Module` 再注入一个解析函数，与既有 `MemberFunc`（`http.go:15-17`）同构，保持 payment 不 import 会员代码：
+- 原状：`payment/http.go` 的 `OpenID: ctx.Query("openid")` —— 信任客户端传入的付款人身份。H5 场景没有 openid 所以没暴露，小程序一接就是真问题。
+- 改法：`payment/http.go` 增 `Payer` 与 `PayerFunc`，与既有 `MemberFunc` 同构，保持 payment 不 import 会员代码：
   ```go
-  // PayerFunc 按会员 ID 取该端支付所需的付款人标识，由外层（控制器）注入
-  type PayerFunc func(memberID string) (Payer, error)
   type Payer struct{ WxOpenID, AlipayUserID string }
+  type PayerFunc func(memberID string) (Payer, error)
   ```
-  `launch` 里改成 `Payer: m.payer(memberID)` 后按 `provider` 选字段填 `LaunchEnv.OpenID`。
+  `NewModule(orders, memberID, payer)` 三参注入；`launch` 改为 `m.payer(memberID)` 后按字段填 `LaunchEnv.OpenID/AlipayUserID`，解析失败直接返回错误而不是「空 openid 继续」。接线在 `controllers/payment_module.go MemberPayer`，走 `memberService.ByID`。
+- **一处提前**：`models.Member` 的 `WxOpenID` / `AlipayUserID`（`json:"-"`）本属 P2b，但「服务端解析」要有可读之处才成立，故随 P2a 落地；`WxUnionID` 与两条唯一索引仍留 P2b（合并逻辑才用得上）。
 - 未采用方案：往 JWT claims 里塞 openid（`utils/jwt.go:18-24` 的 `Claims` 目前没有该字段）。优点每次请求少一次 Mongo 查询；代价是要动签名结构、且换绑/解绑后旧 token 仍带着过期 openid。**先按查库实现**，量大了再优化。
 
-**验收**：带 Bearer 的登录 / 加购 / 下单 / 建支付单 / mock 回调全部 2xx；H5 三条主流程回归零差异（§9）。
+**验收（2026-09-22 实测，`PAY_PROVIDER=mock`）**：
+
+| 场景 | 结果 |
+|---|---|
+| 仅 Bearer（无 Cookie 无 CSRF 头）：加购 / 建地址 / 下单 / prepay / launch / mock-notify / query | 全 200，支付单收敛为 `success` |
+| Cookie 会话缺 CSRF 头 / 头值不匹配 | 403（语义与改造前一致） |
+| Cookie 会话 + 正确 CSRF 头 | 200 |
+| Bearer + 浏览器 Cookie 同时存在且无 CSRF 头 | 403（按 Cookie 载体处理，未放宽） |
+| 裸 token 无 `Bearer` 前缀 | 403「缺少 CSRF Cookie」 |
+| `launch` 带 `?openid=ATTACKER_SELF_REPORTED` | 200 且行为与不带一致；代码层 `ctx.Query("openid")` 已全清（grep 无残留） |
+| `X-Client: mp_wechat` / 非法值 | 均 200，mock 下回 `redirect`（契约不变）；非法值回落 h5 |
+| H5 三条主流程 | 前端零改动，oxlint 0/0 + `npm run build` 通过；Cookie 路径的接口矩阵与上表一致 |
+
+> openid「取自库里而非请求」的**运行期**证据要等真实渠道（`PAY_PROVIDER=wechat` 下 `Prepay` 就要外呼，MOCK 私钥走不通），当前只有代码层与「自报参数不改变结果」两层证据，记在 P2g 复验。
+
 
 ### 3.2 P2b 小程序账号打通（2 人日）
 
@@ -312,7 +328,7 @@ miniprogram/
 | 阶段 | 内容 | 人日 | 出口条件 |
 |---|---|---|---|
 | **P2-0** ✅ | 手机号：中国大陆校验 + `FindByAccount` 支持手机号 + H5 登录/注册文案 + seed 号段 | 1 | H5 用手机号+密码能登录；旧 `60` 号段注册被拒且提示明确 —— **2026-09-22 完成**：实测 `+86 139 1234 1375` 注册归一为 `13912341375`，纯数字/`+86` 带空格/邮箱/用户名四种凭据均可登录，同号重复注册 409，`60` 号段 400，SSO `admin/admin123` 与资料页 3-4-4 展示不回归 |
-| P2a | 端标识 + CSRF 分流 + openid 服务端解析 | 1.5 | Bearer 写接口全通；H5 三条主流程零回归 |
+| **P2a** ✅ | 端标识 + CSRF 分流 + openid 服务端解析 | 1.5 | Bearer 写接口全通；H5 三条主流程零回归 —— **2026-09-22 完成**：仅 Bearer 的「加购→下单→prepay→launch→mock-notify→query」全 200 且收敛 `success`；Cookie 路径缺/错 CSRF 头仍 403、正确则 200；Bearer+Cookie 并存按 Cookie 处理（403，未放宽）；`?openid=` 客户端自报已从代码里清除 |
 | P2b | 小程序登录绑定 + 手机号授权合并 + 索引（身份换取支持确定性 mock） | 2 | 小程序登录 → `/api/auth/me` 与 H5 同一 member |
 | P2c | 支付形态：小程序 appid 位 + `tradeno` kind + mock 分流 | 2 | 双端 IDE 里 mock 走完并收敛为 paid，重复确认不双结算 |
 | P2d-1 | 工程骨架 + `theme/tokens` 手写样式体系 + `request.js` + `useRequest` | 2 | 一端编译出包，首页能拉到真实接口数据 |
@@ -381,3 +397,5 @@ miniprogram/
 |---|---|
 | 2026-09-22 | 首次定稿。方案基于当日读源码核实的事实：`middleware/csrf.go:35-44` 的豁免清单与 Bearer 写请求实测 403、`payment/launch.go:15-23` 的四种 kind 契约、`payment/http.go:125` 由客户端传 openid、`payment/wechat.go:98-103` 的 JSAPI 分支、`frontend/src` 的 503 处 arbitrary class 与 65 个 ES module 素材、10 个 zustand store 无 `persist()`。**未开工**。 |
 | 2026-09-22（当日） | 用户拍板 §10 全部决策点，方案转执行：基线提交并推 `github.com:xueguiyouheng/h5.git` 的 `main`，开工分支 `feat/miniprogram-p2`。变更四处 —— ① react-query 与 Tailwind 双双判定**不复用**（安全稳定优先），MP 侧 `useRequest` + 手写 rpx；② 中台**要移植商家发品**，新增 §4.1 与 P2e（+4~5 人日），总量升至约 24–25 人日；③ 新增 §6.1 前置改造（手机号可做登录凭据 + 中国大陆校验，现为马来西亚号段 `^60\d{9,11}$`），排为 P2-0；④ §8 拆出 P2d-1/P2d-2，明确「先 mock 跑通、资质并行、后续直接替换」的推进方式。 |
+| 2026-09-22（当日） | **P2-0 完成并推 `feat/miniprogram-p2`**：手机号改为中国大陆校验（`^1[3-9]\d{9}$`）+ `NormalizeMobile` 统一「校验/查重/入库/登录比对」四处口径（否则 `+86…` 与纯数字会绕过唯一索引变成两个账号，直接打在 §6 的合并主键上）；`FindByAccount` 支持手机号登录；H5 登录页文案与资料页 3-4-4 展示、注册页文案、seed 号段同步。实测四种凭据可登录、同号重复注册 409、`60` 号段 400。 |
+| 2026-09-22（当日） | **P2a 完成**：① CSRF 按凭证载体分流 —— `middleware/jwt.go` 的 `extractToken` 回载体并导出 `TokenCarrier(c)`，`middleware/csrf.go` 对 bearer 放行；**落地时修正本文原方案**：CSRF 是全局中间件、跑在 JWT 之前，读不到鉴权写的 context key，故判定做成不依赖顺序的纯函数。② `LaunchEnv.Client` + `X-Client` 头（非法值回落 h5），`wechat.go` 的 JSAPI 分支改由端标识强制；CORS 允许头补 `X-Client`。③ 删掉 `OpenID: ctx.Query("openid")`，换成 `PayerFunc` 注入 + `controllers.MemberPayer` 查库；`models.Member` 的 `WxOpenID`/`AlipayUserID` 两列从 P2b 提前（`json:"-"`），`WxUnionID` 与唯一索引仍留 P2b。自测矩阵见 §3.1，测试数据（2 个临时会员 + 3 单 2 支付单 1 地址 2 购物车）已按 ID 删除并回补商品 `stock/sales`。 |

@@ -15,7 +15,7 @@
 | 响应信封 | `{ "code": 200, "message": "success", "data": <业务数据> }`；失败 `{ "code": <http status>, "message": "<中文错误>", "data": null }` | `middleware.Success` / `middleware.Error` |
 | JSON 命名 | **snake_case** | `models.Pagination`、`models.PageResult` |
 | 认证 | 登录签发 JWT 写入 HttpOnly Cookie（`sso_token`），后续请求靠 Cookie，不走 Authorization 头 | `middleware.SetAuthCookie` |
-| CSRF | 所有写操作（POST/PUT/PATCH/DELETE）必须带 `X-CSRF-Token`，值等于可读 Cookie `sso_csrf` | `middleware/csrf.go`、`utils/request.js` |
+| CSRF | 所有写操作（POST/PUT/PATCH/DELETE）必须带 `X-CSRF-Token`，值等于可读 Cookie `sso_csrf`；**仅带 `Authorization: Bearer`（无会话 Cookie）的请求豁免** —— double-submit 防的是浏览器自动带 Cookie，头不会被跨站自动携带 | `middleware/csrf.go`、`middleware/jwt.go:TokenCarrier`、`utils/request.js` |
 | 未授权 | 401 由前端拦截器统一 `location.href = '/login'` | `utils/request.js` |
 | 分页请求 | `page`（从 1 开始）、`page_size`（默认见各接口，上限 50） | `models.Pagination` |
 | 分页响应 | `{ "list": [...], "total": <int64>, "page": n, "page_size": n }` | `models.PageResult` |
@@ -303,7 +303,7 @@
 |------|------|------|
 | POST | `/api/payment/prepay` | Body `{ "order_id", "provider": "alipay"\|"wechat" }` → `Payment`；同单**同渠道**存在未过期 pending 时复用返回，换渠道则重新预下单；订单已支付 409，已结束 422 |
 | GET | `/api/payment/query/{id}` | 支付单查询，前端轮询用；超时的 pending 会先渠道关单再本地置 `closed`，真实渠道下顺带主动查单收敛状态；只认本人（越权 404） |
-| POST | `/api/payment/launch/{id}` | Body `{ "outcome": "success"\|"failed" }`（仅模拟渠道用得着）→ `Launch`；按请求 UA 选渠道产品，前端照指令把页面送到渠道。已支付 409，已关闭 422；渠道参数取 query `openid`（微信 JSAPI 用） |
+| POST | `/api/payment/launch/{id}` | Body `{ "outcome": "success"\|"failed" }`（仅模拟渠道用得着）→ `Launch`；按 `X-Client` 头（`h5`\|`mp_wechat`\|`mp_alipay`\|`app`，缺省/非法值都按 `h5`）选渠道产品，H5 无该头时再看 UA。已支付 409，已关闭 422。**付款人标识（openid）由服务端按会员档案解析，不接受任何客户端传参** |
 | GET | `/api/payment/mock/launch` | Query `payment_id`、`outcome`；**模拟渠道专用**的自托管唤起落点，形态等同渠道的同步跳转：结算后 302 到支付结果页。免登录、真实渠道下 400 |
 | POST | `/api/payment/mock-notify/{id}` | Body `{ "outcome": "success"\|"failed" }` → `Payment`；**仅 mock 渠道、联调/curl 用**（前端已改走 `launch`），幂等；订单入账结果再看 `GET /api/orders/{id}` |
 | POST | `/api/payment/notify/{provider}` | 渠道公网回调，免登录、CSRF 豁免；应答为 `success`（支付宝）/ `{"code":"SUCCESS"}`（微信），不套统一信封 |

@@ -2120,7 +2120,7 @@
                         "CookieAuth": []
                     }
                 ],
-                "description": "按支付单渠道与请求 UA 返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道）/ jsapi（微信内置浏览器）/ qrcode（桌面兜底）",
+                "description": "按支付单渠道与发起端（X-Client，H5 再看 UA）返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道）/ jsapi（微信小程序、微信内置浏览器）/ qrcode（桌面兜底）",
                 "consumes": [
                     "application/json"
                 ],
@@ -2132,6 +2132,12 @@
                 ],
                 "summary": "唤起支付",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "发起端 h5 / mp_wechat / mp_alipay / app，缺省 h5；渠道据此选收款产品",
+                        "name": "X-Client",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "支付单 ID",

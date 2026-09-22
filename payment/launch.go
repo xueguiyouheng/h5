@@ -25,10 +25,22 @@ const (
 
 // LaunchEnv 唤起时的运行环境，由 HTTP 层从请求里取，渠道据此选产品
 type LaunchEnv struct {
-	UserAgent   string // 浏览器 UA，微信内置浏览器要改走 JSAPI
-	OpenID      string // 公众号/小程序内的用户标识，JSAPI 必需；没接授权时为空
-	MockOutcome string // 仅模拟渠道使用：success / failed，真实渠道下不参与任何判断
+	Client       string // 发起端，取自 X-Client 头；小程序的 UA 不可依赖，选产品只能按端标识
+	UserAgent    string // 浏览器 UA，微信内置浏览器要改走 JSAPI
+	OpenID       string // 微信付款人标识，服务端按会员档案解析，绝不取客户端传参
+	AlipayUserID string // 支付宝付款人标识，同上
+	MockOutcome  string // 仅模拟渠道使用：success / failed，真实渠道下不参与任何判断
 }
+
+// 发起端标识，取自 X-Client 头
+// 换端时「用哪个产品收款」是渠道侧的硬约束（小程序 JSAPI 的 appid 必须与 openid 同源），
+// 不能靠 UA 嗅探——小程序请求的 UA 五花八门，误判会回一个跳不出去的 redirect
+const (
+	ClientH5       = "h5"
+	ClientMPWechat = "mp_wechat"
+	ClientMPAlipay = "mp_alipay"
+	ClientApp      = "app"
+)
 
 // JSAPILaunch 微信 JSAPI 唤起参数，Package 固定为 prepay_id=xxx
 type JSAPILaunch struct {

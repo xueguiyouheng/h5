@@ -90,13 +90,14 @@ func (w *wechatProvider) Close(ctx context.Context, payment *Payment) error {
 	return err
 }
 
-// Launch 按端环境选产品：微信内置浏览器走 JSAPI，手机浏览器走 H5，桌面端用 Prepay 拿到的 Native 二维码
+// Launch 按端选产品：小程序与微信内置浏览器走 JSAPI，手机浏览器走 H5，桌面端用 Prepay 拿到的 Native 二维码
+// JSAPI 由端标识强制，不看 UA——小程序的 UA 不可靠，误判成 H5 会回一个在小程序里跳不出去的 redirect
 func (w *wechatProvider) Launch(ctx context.Context, payment *Payment, env LaunchEnv) (*Launch, error) {
 	if UseMock() {
 		return mockLaunch(payment, env), nil
 	}
 	switch {
-	case IsWechatBrowser(env.UserAgent):
+	case env.Client == ClientMPWechat || IsWechatBrowser(env.UserAgent):
 		if env.OpenID == "" {
 			return nil, fmt.Errorf("微信内支付需要先授权取得 openid")
 		}

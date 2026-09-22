@@ -345,7 +345,7 @@ stores ──┬─ categories(store_id) ── subcategories(category_id)
 | 资产 | 为什么能复用 |
 |------|-------------|
 | **全部 `/api/*` 接口与业务规则** | 后端不感知端，端只换 `LaunchEnv` 与 UA。金额 / 库存 / 状态机 / 门店作用域全在服务端裁决 |
-| **`payment/` 后端模块** | 渠道差异已经抽象成 provider；`Launch` 契约**已经预置了小程序 / App 需要的形态**：`form` / `redirect` / **`jsapi`** / **`qrcode`**，`LaunchEnv` 里已经带 `OpenID` 字段 —— 小程序支付要的就是 `jsapi + openid`，接口层不需要新增字段 |
+| **`payment/` 后端模块** | 渠道差异已经抽象成 provider；`Launch` 契约**已经预置了小程序 / App 需要的形态**：`form` / `redirect` / **`jsapi`** / **`qrcode`**。`LaunchEnv` 已带 `Client`（端标识，取 `X-Client` 头）与 `OpenID`（服务端按会员档案查库，不接收客户端传参）—— 小程序支付要的 `jsapi + openid` 在接口层已就位 |
 | **`models/*.go` 出参结构** | 前端换端只换渲染层，JSON 契约不变 |
 | **业务规则文档（§5）** | 直接作为小程序 / App 的需求基线 |
 | **设计稿与已还原几何** | 375×812 屏，小程序 rpx 与 App dp 可按 2x / 3x 直接换算 |
@@ -355,8 +355,8 @@ stores ──┬─ categories(store_id) ── subcategories(category_id)
 
 **小程序（微信 / 支付宝）**
 
-1. 登录：`wx.login` → `code2session` 换 openid + unionid，**与现在的邮箱密码账号体系做绑定/合并**（当前 `members` 无 `openid` 字段，需加集合并处理「一个手机号 / 邮箱在两处出现」）。
-2. JSAPI 支付：`LaunchEnv.OpenID` 必须有值 → 后端 `wechat.go` 的 JSAPI 分支已经写好，缺的是拿到 openid 的链路。
+1. 登录：`wx.login` → `code2session` 换 openid + unionid，**与现在的邮箱密码账号体系做绑定/合并**（`members` 已有 `wx_openid` / `alipay_user_id` 两列，P2a 落；`wx_unionid` 与两条唯一索引随 P2b 落，合并策略按「只认平台授权手机号」）。
+2. JSAPI 支付：`LaunchEnv.OpenID` 必须有值 → 后端 `wechat.go` 的 JSAPI 分支已按 `X-Client: mp_wechat` 强制命中，`openid` 由服务端查会员档案注入（`payment.PayerFunc`），缺的是授权登录写入档案的那条链路（P2b）。
 3. 收货地址：小程序 `wx.chooseAddress` 可以覆盖 `/api/addresses`，无需新增接口。
 4. 定位：`wx.getLocation` 替换 `utils/locate.js`（后者返回 `null` 的兜底语义保持不变即可对接同一套 `/shop/stores/nearby`）。
 5. 订阅消息替换现在的「进页面才看到的站内通知」。
@@ -372,7 +372,7 @@ stores ──┬─ categories(store_id) ── subcategories(category_id)
 
 ### 12.3 换端前要先对齐的契约
 
-- **鉴权载体**：`middleware/jwt.go extractToken()` **已经支持 `Authorization: Bearer`**（Cookie 缺失时回落），登录响应体里也回了 `token`，所以小程序 / App 不必改后端就能带会话。真正要处理的是 CSRF：`middleware/csrf.go` 对所有写操作要求「CSRF Cookie 存在且与 `X-CSRF-Token` 头匹配」，只带 Bearer 而不带 Cookie 的客户端会被 **403** —— 现在豁免的只有 `/api/login` `/api/register` `/api/auth/password/reset(-verify)` 和 `/api/payment/notify/` 前缀。换端前要按「凭证载体」分流豁免，而不是继续往白名单里加路由。
+- **鉴权载体**：`middleware/jwt.go extractToken()` 支持 `Authorization: Bearer`（Cookie 缺失时回落），登录响应体也回 `token`。**CSRF 已按载体分流**（2026-09-22 P2a）：`middleware/csrf.go` 在写操作里先问 `TokenCarrier(c)`，值为 `bearer`（无会话 Cookie 且带 Bearer 头）时放行 double-submit 校验——这套校验存在的唯一理由是浏览器会自动携带 Cookie，头不会被跨站自动携带，故无攻击面；Cookie 会话路径一字未改，且 **Cookie 与 Bearer 同时存在时按 Cookie 处理（仍要 CSRF 头）**，属 fail-closed。豁免清单仍是 4 条引导端点 + `/api/payment/notify/` 前缀，没有继续往里加路由。
 - **`PaymentResult` 落地页**：现在靠整页 302 回跳 + `?payment_id=`。App 内是 scheme 回跳，小程序内是页面 `onShow` 查询 —— **轮询 `GET /api/payment/query/{id}` 这段逻辑是三端共用的核心，务必保持单一**。
 - **域名与回调**：真实渠道要求公网 HTTPS 回调，`*_NOTIFY_URL` 目前缺省指向 `localhost`。
 - **单号与时间**：`order_no` 用 UTC 时间戳拼，跨端展示与对账要确认时区口径（客服在线时段判定已是 GMT+8）。

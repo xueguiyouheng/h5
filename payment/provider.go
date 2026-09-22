@@ -47,7 +47,7 @@ type Provider interface {
 	Query(ctx context.Context, payment *Payment) (*NotifyResult, error)
 	// Close 关单，超时未付时调用
 	Close(ctx context.Context, payment *Payment) error
-	// Launch 把用户送去付款的唤起指令，按端环境（UA / openid）在渠道内部选产品
+	// Launch 把用户送去付款的唤起指令，按端标识与 UA 在渠道内部选产品，付款人标识由服务端解析
 	Launch(ctx context.Context, payment *Payment, env LaunchEnv) (*Launch, error)
 }
 

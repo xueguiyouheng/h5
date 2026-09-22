@@ -22,7 +22,7 @@ func CORSMiddleware() gin.HandlerFunc {
 			c.Header("Vary", "Origin")
 		}
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization, Accept, X-Requested-With, X-CSRF-Token")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization, Accept, X-Requested-With, X-CSRF-Token, X-Client")
 		c.Header("Access-Control-Expose-Headers", "Content-Length, Content-Disposition, X-CSRF-Token")
 		c.Header("Access-Control-Allow-Credentials", "true")
 

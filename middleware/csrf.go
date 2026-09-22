@@ -8,6 +8,7 @@
 //
 // 写操作校验规则 (POST/PUT/DELETE/PATCH):
 //   - POST /api/login → 豁免 (引导端点, 首次设置 CSRF Cookie)
+//   - Authorization: Bearer 请求 → 放行 (小程序 / App 无 Cookie 会话, 见下)
 //   - 缺少 CSRF Cookie → 拒绝 (403)
 //   - CSRF Cookie 存在但 Header 缺失或不匹配 → 拒绝 (403)
 //
@@ -68,6 +69,15 @@ func CSRFMiddleware() gin.HandlerFunc {
 
 		// 引导端点豁免 (登录/注册时第一次设置 CSRF Cookie) 与渠道公网回调
 		if csrfExempt(c.Request.URL.Path) {
+			c.Next()
+			return
+		}
+
+		// Bearer 请求放行：double-submit 存在的唯一理由是浏览器会自动携带 Cookie，
+		// 攻击者读不到但能迫使发出；Authorization 头不会被跨站请求自动携带，
+		// 这条防线在 Bearer 载体下无攻击面可验，来源合法性由 JWT 校验保证。
+		// Cookie 会话路径的校验逻辑一字不改。
+		if TokenCarrier(c) == CarrierBearer {
 			c.Next()
 			return
 		}

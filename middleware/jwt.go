@@ -21,10 +21,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 令牌载体
+const (
+	CarrierCookie = "cookie" // HttpOnly Cookie，浏览器会话，写操作要过 CSRF
+	CarrierBearer = "bearer" // Authorization 头，小程序 / App 客户端，无 CSRF 攻击面
+	CarrierNone   = ""       // 两种都没带
+)
+
 // JWTAuthMiddleware JWT 鉴权中间件
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := extractToken(c)
+		token, _ := extractToken(c)
 		if token == "" {
 			Error(c, http.StatusUnauthorized, "未登录或登录已过期")
 			c.Abort()
@@ -72,19 +79,29 @@ func BlacklistToken(jti string, expiresAt int64) {
 	_ = config.RDB.Set(key, "1", ttl).Err()
 }
 
-// extractToken 从请求中提取 JWT 令牌
-func extractToken(c *gin.Context) string {
+// extractToken 从请求中提取 JWT 令牌，返回令牌本身与它的载体
+func extractToken(c *gin.Context) (string, string) {
 	if token, err := c.Cookie(config.CookieName); err == nil && token != "" {
-		return token
+		return token, CarrierCookie
 	}
 	authHeader := c.GetHeader("Authorization")
 	if authHeader != "" {
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
-			return parts[1]
+			return parts[1], CarrierBearer
 		}
 	}
-	return ""
+	return "", CarrierNone
+}
+
+// TokenCarrier 本次请求的令牌载体: cookie / bearer / 空
+//
+// CSRF 中间件挂在全局链上、跑在 JWT 鉴权之前，读不到鉴权阶段写入的 context，
+// 因此载体判定必须是一个不依赖中间件顺序的纯函数，且与 extractToken 的优先级同口径
+// （Cookie 命中即算 cookie，只有「没有 Cookie 却带 Bearer」的请求才按 bearer 处理）。
+func TokenCarrier(c *gin.Context) string {
+	_, carrier := extractToken(c)
+	return carrier
 }
 
 // SetAuthCookie 在登录成功时写入 HttpOnly Cookie

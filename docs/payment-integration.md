@@ -28,7 +28,7 @@
 | 文件 | 职责 |
 |------|------|
 | `payment/provider.go` | `Provider` 接口（`Prepay`/`Launch`/`ParseNotify`/`Query`/`Close`）、渠道注册表、**mock 报文构造** |
-| `payment/launch.go` | `Launch` 唤起契约（`form`/`redirect`/`jsapi`/`qrcode`）+ `LaunchEnv`（UA、openid）、UA 判定、mock 唤起拼串 |
+| `payment/launch.go` | `Launch` 唤起契约（`form`/`redirect`/`jsapi`/`qrcode`）+ `LaunchEnv`（端标识 `X-Client`、UA、服务端解析出的付款人标识）、UA 判定、mock 唤起拼串 |
 | `payment/alipay.go` | 当面付 `alipay.trade.precreate` 预下单、手机网站支付 `alipay.trade.wap.pay` 自提交表单（`Launch`）、`alipay.trade.query` 查单、`alipay.trade.close` 关单、表单回调验签 |
 | `payment/wechat.go` | V3 Native `/pay/transactions/native` 下单、H5 `/pay/transactions/h5`、公众号 `/pay/transactions/jsapi`（含给前端的第二段 RSA 签名）、按商户单号查单与关单、`WECHATPAY2-SHA256-RSA2048` 认证头、回调时间戳防重放 + 平台证书验签 + APIv3 Key AEAD 解密 |
 | `payment/gateway.go` | `OrderGateway` 接口（`Order`/`Settle`）——支付与订单之间唯一的耦合点 |
@@ -118,14 +118,14 @@ updateOne({ _id: paymentID, status: "pending" }, { $set: { status: "success", ..
 |------|------|------|-------------|
 | POST | `/api/payment/prepay` | `{ "order_id": "...", "provider": "alipay" }` | `Payment`（含 `id`、`amount`、`pay_url`、`expired_at`、`mock_credential`） |
 | GET | `/api/payment/query/{id}` | — | `Payment`；`pending` 且已超时则渠道关单 + 本地落 `closed` 再返回；真实渠道下顺带主动查单收敛 |
-| POST | `/api/payment/launch/{id}` | `{ "outcome": "success" \| "failed" }`（只有 mock 读它）；query `openid`（微信 JSAPI 必需） | `Launch`：`{ "kind", "payment_id", "provider", "action", "fields", "url", "jsapi", "qr_content" }`，只填当前 `kind` 用得上的字段；已支付 409，已关闭 422 |
+| POST | `/api/payment/launch/{id}` | `{ "outcome": "success" \| "failed" }`（只有 mock 读它）；头 `X-Client`（`h5`/`mp_wechat`/`mp_alipay`/`app`，缺省或非法值按 `h5`） | `Launch`：`{ "kind", "payment_id", "provider", "action", "fields", "url", "jsapi", "qr_content" }`，只填当前 `kind` 用得上的字段；已支付 409，已关闭 422。**openid 不接收客户端传参，由 `PayerFunc` 按会员档案查库** |
 | GET | `/api/payment/mock/launch` | query `payment_id`、`outcome` | **mock 专属**的唤起落点：结算后 302 到 `PAY_MOCK_RESULT_URL?payment_id=...`；形态与真实渠道的同步跳转一致，故为免登录 GET；真实渠道下 400 |
 | POST | `/api/payment/mock-notify/{id}` | `{ "outcome": "success" \| "failed" }` | `Payment`；**仅 `PAY_PROVIDER=mock`，前端已改走 `launch`，这条留给 curl 联调** |
 | POST | `/api/payment/notify/{provider}` | 渠道原文（支付宝表单 / 微信 V3 加密报文） | 支付宝回 `success`、微信回 `{"code":"SUCCESS"}`；免登录、CSRF 豁免、验签不过即失败应答 |
 
 六条路由由 `payment/http.go` 的 `RegisterMember` / `RegisterPublic` 注册，商城只在 `routers/router.go` 里挂分组，不再有自己的支付 handler。
 
-**唤起（`Launch`）与预下单（`Prepay`）为什么要分开**：`Prepay` 建单时只能拿到与该端无关的收银台素材（Native/当面付的二维码），而「用什么产品把用户送去付款」取决于请求当下的端环境——UA 是桌面还是移动浏览器、是不是微信内置浏览器、有没有 `openid`。所以渠道产品选择在 `Launch` 里做，点一次「唤起支付」取一次指令，续付与重试都走同一条代码：
+**唤起（`Launch`）与预下单（`Prepay`）为什么要分开**：`Prepay` 建单时只能拿到与该端无关的收银台素材（Native/当面付的二维码），而「用什么产品把用户送去付款」取决于请求当下的端环境——是 `X-Client` 的哪个端、UA 是桌面还是移动浏览器、是不是微信内置浏览器、会员档案里有没有 `openid`。所以渠道产品选择在 `Launch` 里做，点一次「唤起支付」取一次指令，续付与重试都走同一条代码：
 
 | 渠道 | 端 | `kind` | 渠道产品 |
 |------|----|--------|----------|
@@ -216,7 +216,7 @@ updateOne({ _id: paymentID, status: "pending" }, { $set: { status: "success", ..
 | 兜底查询 | `/v3/pay/transactions/out-trade-no/{out_trade_no}` | **已实现** `Query` | 带 `mchid` |
 | 关单 | 同上 `/close` | **已实现** `Close` | 超时未付 |
 | 异步回调 | `/api/payment/notify/wechat` | **已实现** 防重放 + 验签 + AEAD 解密 | 见 §9.3 |
-| 公众号/小程序内 | `/v3/pay/transactions/jsapi` | **已实现** `payment/wechat.go:Launch` · `kind=jsapi` | 需用户 `openid`（query 传入，没有则 422 提示先授权）；`prepay_id` 落库后再签一次给前端 `WeixinJSBridge`，这也是唯一会填 `prepay_id` 的场景 |
+| 公众号/小程序内 | `/v3/pay/transactions/jsapi` | **已实现** `payment/wechat.go:Launch` · `kind=jsapi` | 需用户 `openid`（**服务端按会员档案查库**，档案里没有就直接失败提示先授权，绝不采信客户端传参）；`prepay_id` 落库后再签一次给前端 `WeixinJSBridge`，这也是唯一会填 `prepay_id` 的场景 |
 | H5 | `/v3/pay/transactions/h5` | **已实现** `payment/wechat.go:Launch` · `kind=redirect` | 需报备 H5 域名，返回 `h5_url` 后前端整页跳转拉起 |
 | 退款 | `/v3/refund/domestic/refunds` | 未接 | |
 | 对账 | `/v3/bill/tradebill` + `fundflow` | 未接 | §9.5 |
