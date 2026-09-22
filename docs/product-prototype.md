@@ -336,8 +336,7 @@ stores ──┬─ categories(store_id) ── subcategories(category_id)
 
 ## 12. 小程序 / App 复用与改造准备
 
-> **再次声明：本章是准备材料，小程序与 App 均未开发。**
-> 本章的结论已展开成实施方案：[`miniprogram-plan.md`](./miniprogram-plan.md)（复用清单、后端改造点、分期与前置条件）；该方案同样**未开工**，等 §10 决策点确认。
+> **本章是准备材料。** 其结论已展开成实施方案：[`miniprogram-plan.md`](./miniprogram-plan.md)（复用清单、后端改造点、分期与前置条件）。2026-09-22 状态更新：该方案**已拍板并开工**（分支 `feat/miniprogram-p2`），H5 侧唯一受影响的规则是手机号改为大陆校验并可用于登录（方案 §6.1）。
 
 ### 12.1 可以直接复用（不需要重写）
 
@@ -385,7 +384,7 @@ P2（小程序）    登录绑定 + JSAPI 支付 + 订阅消息，业务接口�
 P3（App）       App 支付 kind + 推送 + 对象存储
 ```
 
-用户已明确：**「等我把基本功能磨炼完成后 再上 p2/p3」**，因此 P2/P3 只做到本节这种准备度，不进入代码。2026-09-22 追加：P2（小程序）已产出实施方案 [`miniprogram-plan.md`](./miniprogram-plan.md)，仍是纸面方案，未动代码；P3（App）未启动。
+用户已明确：**「等我把基本功能磨炼完成后 再上 p2/p3」**。2026-09-22 追加：基本功能闭环达成后，P2（小程序）方案 [`miniprogram-plan.md`](./miniprogram-plan.md) 已拍板开工（`feat/miniprogram-p2`，约 24–25 人日，含商家发品移植）；P3（App）未启动。
 
 ---
 

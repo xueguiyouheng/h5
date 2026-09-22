@@ -70,7 +70,7 @@ go-gin/
 │   └── router.go               # 路由注册
 └── docs/
     ├── product-prototype.md    # 产品原型与功能文档（H5 闭环范围 / 优缺点 / 小程序与 App 准备）
-    ├── miniprogram-plan.md     # 微信 / 支付宝小程序落地方案（复用清单 / 后端改造 / 分期，未开工）
+    ├── miniprogram-plan.md     # 微信 / 支付宝小程序落地方案（复用清单 / 后端改造 / 分期，已开工）
     ├── api.md                  # 数据接口文档
     ├── payment-integration.md  # 支付接入与切换真实渠道的契约
     ├── database.md             # 数据库表结构说明
