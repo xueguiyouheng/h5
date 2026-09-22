@@ -261,19 +261,19 @@ func seedMembers(now time.Time) error {
 
 	members := []models.Member{
 		{
-			ID: demoAdminID, Username: "admin", Email: "admin@sso.local", Mobile: "60123450001",
+			ID: demoAdminID, Username: "admin", Email: "admin@sso.local", Mobile: "13800000001",
 			Password: string(unreachable), Gender: "male", Onboarded: true, Language: "en",
 			AccountType: models.AccountTypeMerchant,
 			SSOUserID:   1, DefaultStoreID: demoStoreID, Longitude: demoBuyerLng, Latitude: demoBuyerLat,
 			CreatedAt: now, UpdatedAt: now,
 		},
 		{
-			ID: demoMerchant2ID, Username: "Bob Wang", Email: "bob.wang@email.com", Mobile: "60123450002",
+			ID: demoMerchant2ID, Username: "Bob Wang", Email: "bob.wang@email.com", Mobile: "13800000002",
 			Password: string(hash), Gender: "male", Onboarded: true, Language: "en",
 			AccountType: models.AccountTypeMerchant, DefaultStoreID: secondStoreID, CreatedAt: now, UpdatedAt: now,
 		},
 		{
-			ID: demoMemberID, Username: "Adam Smith", Email: demoMemberMail, Mobile: "60122578692",
+			ID: demoMemberID, Username: "Adam Smith", Email: demoMemberMail, Mobile: "13800000003",
 			Password: string(hash), Gender: "male", Onboarded: true, Language: "en",
 			AccountType:    models.AccountTypeBuyer,
 			DefaultStoreID: demoStoreID, Longitude: demoBuyerLng, Latitude: demoBuyerLat,
@@ -596,8 +596,8 @@ func seedAddresses(now time.Time) error {
 // 全部落在旗舰店，配合 PaymentStatus 让运营中台的订单处理模块有已付款单可操作
 func seedOrders(products []models.Product, now time.Time) error {
 	buyers := []struct{ id, name, mobile string }{
-		{demoAdminID, "Admin", "60123450001"},
-		{demoMemberID, "Adam Smith", "60122578692"},
+		{demoAdminID, "Admin", "13800000001"},
+		{demoMemberID, "Adam Smith", "13800000003"},
 	}
 	statuses := []string{"accepted", "ready", "accepted", "ready", "delivered", "cancelled", "ready", "accepted", "delivered", "delivered", "cancelled", "ready", "accepted", "delivered"}
 	serial := 0

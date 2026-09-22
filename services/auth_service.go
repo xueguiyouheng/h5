@@ -39,7 +39,7 @@ const loginMaxAttempts = 5
 const loginLockDuration = 15 * time.Minute
 
 // Login 用户登录
-// account 可以是 SSO 用户名，也可以是商城会员的邮箱/用户名；ip 用于登录限流
+// account 可以是 SSO 用户名，也可以是商城会员的邮箱/用户名/手机号；ip 用于登录限流
 // 流程: 检查锁定 → 查 MySQL 用户 → 命中则校验密码并签发后台令牌
 //
 //	→ 未命中则查 Mongo 会员 → 校验密码并签发会员令牌

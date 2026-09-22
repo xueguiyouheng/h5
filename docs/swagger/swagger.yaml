@@ -190,7 +190,7 @@ definitions:
         description: 密码，必填
         type: string
       username:
-        description: 用户名或邮箱
+        description: 用户名、邮箱或手机号
         type: string
     required:
     - password
@@ -1466,7 +1466,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 账号可以是 SSO 用户名，也可以是商城会员邮箱/用户名；成功后写入 sso_token 与 sso_csrf
+      description: 账号可以是 SSO 用户名，也可以是商城会员邮箱/用户名/手机号；成功后写入 sso_token 与 sso_csrf
       parameters:
       - description: 账号与密码
         in: body

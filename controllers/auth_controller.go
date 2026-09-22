@@ -28,7 +28,7 @@ func NewAuthController() *AuthController {
 
 // Login 处理用户登录请求
 // @Summary 登录并签发会话 Cookie
-// @Description 账号可以是 SSO 用户名，也可以是商城会员邮箱/用户名；成功后写入 sso_token 与 sso_csrf
+// @Description 账号可以是 SSO 用户名，也可以是商城会员邮箱/用户名/手机号；成功后写入 sso_token 与 sso_csrf
 // @Tags auth
 // @Accept json
 // @Produce json

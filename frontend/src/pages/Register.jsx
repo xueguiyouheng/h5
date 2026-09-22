@@ -40,7 +40,7 @@ const FIELDS = [
   },
   {
     key: 'mobile',
-    label: 'Mobile number',
+    label: 'Mobile number (mainland)',
     icon: iconMobile,
     iconClass: 'h-[18px] w-[21px]',
     autoComplete: 'tel',

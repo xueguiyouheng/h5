@@ -46,7 +46,7 @@ function Login() {
 
           <UnderlineField
             name="email"
-            label="Email address"
+            label="Email / Mobile"
             icon={iconMail}
             iconClass="h-[18px] w-[18px]"
             value={email}

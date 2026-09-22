@@ -24,7 +24,7 @@ func NewMemberService() *MemberService { return &MemberService{} }
 var (
 	emailRe  = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]{2,}$`)
 	nameRe   = regexp.MustCompile(`^[A-Za-z .'-]+$`)
-	mobileRe = regexp.MustCompile(`^60\d{9,11}$`)
+	mobileRe = regexp.MustCompile(`^1[3-9]\d{9}$`)
 	codeRe   = regexp.MustCompile(`^\d{6}$`)
 )
 
@@ -57,12 +57,25 @@ func ValidatePassword(v string) string {
 	return ""
 }
 
-// ValidateMobile 马来西亚手机号：纯数字、60 开头、总长 11-13 位
+// NormalizeMobile 抽出比对与存储用的手机号：去掉空格、连字符与国家码前缀
+// 校验、查重、入库必须走同一个函数，否则 +8613800138000 与 13800138000 会绕过唯一索引变成两个账号
+func NormalizeMobile(v string) string {
+	digits := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, v)
+	if len(digits) == 13 && strings.HasPrefix(digits, "86") {
+		digits = digits[2:]
+	}
+	return digits
+}
+
+// ValidateMobile 中国大陆手机号：11 位、1 开头、第二位 3-9；展示与存储都不带国家码
 func ValidateMobile(v string) string {
-	v = strings.ReplaceAll(v, " ", "")
-	v = strings.TrimPrefix(v, "+")
-	if !mobileRe.MatchString(v) {
-		return "手机号需以 60 开头，长度 11-13 位"
+	if !mobileRe.MatchString(NormalizeMobile(v)) {
+		return "请输入 11 位中国大陆手机号，如 13800138000"
 	}
 	return ""
 }
@@ -104,10 +117,11 @@ func (s *MemberService) Register(req *models.RegisterRequest) (*models.RegisterR
 	}
 
 	email := strings.ToLower(strings.TrimSpace(req.Email))
+	mobile := NormalizeMobile(req.Mobile)
 	if exists, _ := s.FindByAccount(email); exists != nil {
 		return nil, ErrConflict("该邮箱已被注册")
 	}
-	if exists, _ := s.FindByMobile(strings.TrimSpace(req.Mobile)); exists != nil {
+	if exists, _ := s.FindByMobile(mobile); exists != nil {
 		return nil, ErrConflict("该手机号已被注册")
 	}
 
@@ -135,7 +149,7 @@ func (s *MemberService) Register(req *models.RegisterRequest) (*models.RegisterR
 		ID:          newID(),
 		Username:    strings.TrimSpace(req.Username),
 		Email:       email,
-		Mobile:      strings.TrimSpace(req.Mobile),
+		Mobile:      mobile,
 		Password:    string(hash),
 		Language:    "en",
 		AccountType: accountType,
@@ -168,7 +182,7 @@ func (s *MemberService) Register(req *models.RegisterRequest) (*models.RegisterR
 	return result, nil
 }
 
-// FindByAccount 按邮箱或用户名查会员
+// FindByAccount 按邮箱、用户名或手机号查会员，是登录与找回的唯一凭据入口
 func (s *MemberService) FindByAccount(account string) (*models.Member, error) {
 	account = strings.TrimSpace(account)
 	if account == "" {
@@ -179,6 +193,8 @@ func (s *MemberService) FindByAccount(account string) (*models.Member, error) {
 		"$or": []map[string]interface{}{
 			{"email": strings.ToLower(account)},
 			{"username": account},
+			// 手机号可登录：库内存的是 NormalizeMobile 之后的纯数字
+			{"mobile": NormalizeMobile(account)},
 		},
 	})
 	if err := findOneDoc(config.Collections.Members, filter, &member); err != nil {
@@ -259,7 +275,7 @@ func (s *MemberService) UpdateProfile(id string, req *models.UpdateMemberRequest
 		if msg := ValidateMobile(req.Mobile); msg != "" {
 			return nil, ErrBadRequest(msg)
 		}
-		mobile := strings.TrimSpace(req.Mobile)
+		mobile := NormalizeMobile(req.Mobile)
 		if mobile != member.Mobile {
 			if other, _ := s.FindByMobile(mobile); other != nil {
 				return nil, ErrConflict("该手机号已被注册")

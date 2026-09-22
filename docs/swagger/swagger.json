@@ -1697,7 +1697,7 @@
         },
         "/api/login": {
             "post": {
-                "description": "账号可以是 SSO 用户名，也可以是商城会员邮箱/用户名；成功后写入 sso_token 与 sso_csrf",
+                "description": "账号可以是 SSO 用户名，也可以是商城会员邮箱/用户名/手机号；成功后写入 sso_token 与 sso_csrf",
                 "consumes": [
                     "application/json"
                 ],
@@ -3656,7 +3656,7 @@
                     "type": "string"
                 },
                 "username": {
-                    "description": "用户名或邮箱",
+                    "description": "用户名、邮箱或手机号",
                     "type": "string"
                 }
             }

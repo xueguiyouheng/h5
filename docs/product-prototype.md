@@ -87,8 +87,8 @@
 | 路由 | 设计稿节点 | 原型要点 | 数据来源 / 业务 |
 |------|-----------|---------|----------------|
 | `/onboarding` | `C8f31WfGTa` | 全屏无页头；右上角页码指示器（当前页 26×8 绿胶囊，其余 8px 圆点）；主图 + 标题 + 描述 + Login / Sign up 双 CTA | `GET /api/onboarding/slides`；完成后 `POST /api/onboarding/complete` |
-| `/login` | `Uxph5YiA7t` | 下划线式字段（`UnderlineField`），标题不在页头内（页头只出回退箭头）；Forgot Password 红色下划线文字 | `POST /api/login` → HttpOnly Cookie + CSRF；成功 `navigate('/shop', {replace:true})` |
-| `/register` | `MA1FcG-1ER` | 买家 / 商家双 pill 切换；选商家时追加「门店名称 + 门店地址」两栏与「用我的当前位置作为门店坐标」按钮 | `POST /api/register`（公开，无会话）；服务端 `ValidateStore` 校验门店名 2–30 字、地址 ≥6 字；商家注册即建店并回 `data.owned_store_id` |
+| `/login` | `Uxph5YiA7t` | 下划线式字段（`UnderlineField`），标题不在页头内（页头只出回退箭头）；Forgot Password 红色下划线文字；账号框 label「Email / Mobile」——**邮箱、用户名、手机号三种都能登录**，前端不限格式由后端判定 | `POST /api/login` → HttpOnly Cookie + CSRF；成功 `navigate('/shop', {replace:true})` |
+| `/register` | `MA1FcG-1ER` | 买家 / 商家双 pill 切换；选商家时追加「门店名称 + 门店地址」两栏与「用我的当前位置作为门店坐标」按钮；手机号限中国大陆 11 位（`^1[3-9]\d{9}$`） | `POST /api/register`（公开，无会话）；服务端 `ValidateStore` 校验门店名 2–30 字、地址 ≥6 字；商家注册即建店并回 `data.owned_store_id` |
 
 > **注册页不链去 `/settings`**（那是受保护路由，未登录会被弹回登录页），条款与隐私在页内展开 `LEGAL_COPY` 面板。
 
@@ -117,7 +117,7 @@
 | 路由 | 设计稿节点 | 要点 | 业务 |
 |------|-----------|------|------|
 | `/profile` | `Sz-QR8qFqD` | 头部资料卡 + 分组入口行，行右侧显示真实数值（订单数 / 收藏数 / 券数 / 默认地址 / 未读数 / 语言 / 平均分）；商家多一行「运营中台」；底部退出登录 | 聚合各 store；`GET /api/auth/me` |
-| `/my-profile` | `sro_FGWgbC` | 5 张资料卡 + 铅笔行内编辑；手机号 `+60 12 257 8692` 格式化；密码强度与资料完整度 | `PUT /api/profile`、`GET /api/profile/completeness` |
+| `/my-profile` | `sro_FGWgbC` | 5 张资料卡 + 铅笔行内编辑；手机号按大陆 3-4-4 分组显示（`138 0013 8000`），不合规的存量旧号原样显示不伪装；密码强度与资料完整度 | `PUT /api/profile`、`GET /api/profile/completeness` |
 | `/favorites` | `HRktBYJjx-`（MCP 未读到，几何待复核） | **购物车行式**：勾选框 + 70×70 图 + 名称/价 + 行尾 `×`；售罄行带红色「库存不足」标记且**不可勾选**；下方「全选 (N) … 合计 $」；底栏只有一个「一键加入购物车 (N)」 | `GET /api/shop/products?favorite=true`（跨门店，收藏跟人走）、`DELETE /api/shop/favorites`、`POST /api/cart/items/batch` |
 | `/vouchers` | `fVK-efyqxy` | 兑换码输入 + Apply；券卡 315×99 带左右圆缺口与竖虚线；可用/差额实时按车金额算 | `GET /api/vouchers`、`/vouchers/available?amount=`、`POST /api/vouchers/redeem` |
 | `/addresses` | `iti-MSKzdJ` | 卡片 319×83，名称 + 两行地址；`+ Add`；编辑 / 删除 / 设为默认 | `GET/POST/PATCH/DELETE /api/addresses`、`PUT /{id}/default` |
@@ -200,6 +200,8 @@
 | 门店地址 ≠ 收货地址 | `Store.address` 是卖家发货店址（注册 `store_address` 采集、中台「门店资料」维护）；`/api/addresses` 只服务买家收货与结算，**两者互不派生** | `services/member_service.go`、`docs/api.md §3.8` |
 | 中台作用域 | 只认 `AdminShopScope` 注入的 `storeID`，不读请求参数；无门店账号 403 | `controllers/admin_scope.go` |
 | 账号类型 | `members.account_type = buyer / merchant`，注册时落库并随 `/api/auth/me`、`PUT /api/profile` 回显；`merchant` 恒有 `is_admin=true`。存量账号（种子、SSO 建档）文档里没有该字段，出参由 `markMerchant` 按「名下有无门店」补全 | `models/account.go`、`controllers/context.go markMerchant` |
+| 手机号 | 中国大陆 11 位 `^1[3-9]\d{9}$`（2026-09-22 由马来西亚 `^60\d{9,11}$` 换掉，属破坏性变更：存量旧号登录不受影响，再保存时会被拦）。**校验、查重、入库统一走 `NormalizeMobile`**，`+86`/空格/连字符先归一成纯数字，避免同号双账号；`mobile` 唯一索引是小程序账号合并的主键 | `services/member_service.go` |
+| 登录凭据 | 邮箱 / 用户名 / **手机号** 三者任一 + 密码；`FindByAccount` 的 `$or` 一次查完，先 MySQL SSO 后台账号后 Mongo 会员，优先级不变 | `services/auth_service.go Login`、`services/member_service.go FindByAccount` |
 | 商品列表唯一入口 | 搜索 / 类目 / 首页版块 / 收藏全部是 `GET /api/shop/products` + 过滤字段（`q`/`category_id`/`subcategory`/`section`/`favorite`/`sort`），因此分页、排序、`collected` 标记行为天然一致 | `services/shop_service.go` `ListProducts` |
 | 收藏跨门店 | `favorite=true` 时**不限门店**（收藏跟人走），跨店加购仍由购物车侧拦下 | 同上 |
 | 库存 | 加购累计校验；下单条件扣减；取消/关单回补；单行上限 20、批量上限 100 | `mergeLine` / `deductStock` / `restoreStock` |

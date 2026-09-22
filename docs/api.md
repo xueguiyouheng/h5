@@ -45,10 +45,12 @@
 ## 2. 认证与账号（账户流）
 
 ### 2.1 `POST /api/login` ✅ 已存在
-- Body：`{ "username": "admin", "password": "admin123" }`
+- Body：`{ "username": "admin", "password": "admin123" }`，`username` 与 `email` 二选一（同义）
+- 账号位可以是 **SSO 用户名 / 会员邮箱 / 会员用户名 / 会员手机号**：`services/member_service.go FindByAccount` 的 `$or` 三条并列，手机号入库前经 `NormalizeMobile` 归一（去空格与国家码），所以填 `13800138000` 或 `+86 138 0013 8000` 都能登进来
+- 顺序：先查 MySQL SSO 用户，未命中再查 Mongo 会员 —— 后台账号优先级不受本次改动影响
 - `data`：`{ "token": "<jwt>", "token_type": "Bearer" }`
 - 副作用：写 `sso_token` + `sso_csrf` Cookie
-- 待决策：注册页与登录页字段都叫 **Email address**（设计稿 `Uxph5YiA7t`），后端目前是 `username`。建议 `LoginRequest` 增加 `email` 语义（`username` 兼容保留），否则前端 label 要改回 Username。
+- ~~待决策：登录页 label 叫 Email address 而后端叫 username~~ 2026-09-22 关闭：登录页 label 改「Email / Mobile」，前端不做输入格式限制，由后端 `$or` 判定
 
 ### 2.2 `POST /api/logout` ✅ 已存在
 - 无 Body；`data: null`。Token 进 Redis 黑名单并清 Cookie。
@@ -61,7 +63,7 @@
     "id": 12,
     "username": "Adam Smith",
     "email": "Adamsmith@email.com",
-    "mobile": "60122578692",
+    "mobile": "13800000003",
     "avatar_url": "https://cdn.example.com/a/12.png",
     "onboarded": true,
     "account_type": "merchant",
@@ -75,11 +77,12 @@
 ### 2.4 `POST /api/register` 🆕（对应 `MA1FcG-1ER` 注册页）
 - Body：
   ```json
-  { "username": "Ada Lovelace", "email": "ada@example.com", "password": "Ada@2026x", "mobile": "60123456789" }
+  { "username": "Ada Lovelace", "email": "ada@example.com", "password": "Ada@2026x", "mobile": "13800138000" }
   ```
-- 规则（等价于 `validateProfileField`）：username 3–24 且仅字母/空格/`. ' -`；email 正则 `^[^\s@]+@[^\s@]+\.[^\s@]{2,}$`；password ≥8；mobile  digits 且以 `60` 开头、长 11–13。
+- 规则（等价于 `validateProfileField`）：username 3–24 且仅字母/空格/`. ' -`；email 正则 `^[^\s@]+@[^\s@]+\.[^\s@]{2,}$`；password ≥8；**mobile 为中国大陆 11 位 `^1[3-9]\d{9}$`**（2026-09-22 起；此前是马来西亚 `^60\d{9,11}$`）。`+86`、空格、连字符由 `NormalizeMobile` 归一成纯数字后**校验与入库同口径**，避免 `+8613800138000` 与 `13800138000` 绕过唯一索引。
 - 成功：`201` → `data: { "id": "650f...", "email": "ada@example.com", "verification_required": false, "account_type": "buyer" }`；`account_type` 会落库到会员文档（见 §2「注册区分商家」），商家注册额外回 `owned_store_id`。
 - 失败：400（字段校验，`message` 为具体字段文案）/ 409（`email`、`mobile` 已存在）
+- ⚠️ 破坏性变更边界：存量会员（含手工注册的老账号）手机号若仍是 `60` 号段，用邮箱/用户名登录不受影响，但**再次保存手机号会被新校验拦下**，需改填大陆号码。服务端不做静默改写，也不放宽校验放行。
 - 前端改动：`pages/Register.jsx` 的 `Next` 改为调用本接口，成功后不再 `setField` 写 localStorage，而是跳 `/login` 并带 `state.registered = email`。
 
 ### 2.5 `POST /api/auth/password/reset` 🆕（对应 `ihtTti_11S` Forgot Password，尚未还原成页面）

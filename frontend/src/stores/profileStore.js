@@ -3,12 +3,11 @@ import * as accountApi from '../api'
 
 export const GENDERS = ['Male', 'Female', 'Other']
 
+// 大陆号段按 3-4-4 分组展示；不合规的存量号码（如早期的 60 开头）原样显示，不做伪装改写
 export function formatMobile(raw) {
   const digits = String(raw).replace(/\D/g, '')
-  if (!digits.startsWith('60')) return digits
-  const local = digits.slice(2)
-  if (local.length < 7) return `+60 ${local}`
-  return `+60 ${local.slice(0, 2)} ${local.slice(2, 5)} ${local.slice(5, 9)}`
+  if (!/^1[3-9]\d{9}$/.test(digits)) return digits
+  return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`
 }
 
 export function passwordStrength(pw) {
@@ -28,9 +27,11 @@ const RULES = {
     return { value }
   },
   mobile: (v) => {
-    const digits = v.replace(/\D/g, '')
-    if (!digits.startsWith('60') || digits.length < 11 || digits.length > 13) {
-      return { error: '请输入大马手机号，如 60123456789' }
+    // 与后端 NormalizeMobile 同口径：只留数字，13 位且 86 开头视为带国家码
+    let digits = v.replace(/\D/g, '')
+    if (digits.length === 13 && digits.startsWith('86')) digits = digits.slice(2)
+    if (!/^1[3-9]\d{9}$/.test(digits)) {
+      return { error: '请输入 11 位中国大陆手机号，如 13800138000' }
     }
     return { value: digits }
   },

@@ -3,10 +3,10 @@
 package models
 
 // LoginRequest 登录请求体
-// 前端提交账号与密码，账号可以是 SSO 用户名，也可以是商城会员的邮箱或用户名
-// Email 字段为兼容前端 label（Email address）而保留，与 Username 二选一
+// 前端提交账号与密码，账号可以是 SSO 用户名，也可以是商城会员的邮箱、用户名或手机号
+// Email 字段是历史兼容位（登录页早期 label 为 Email address），与 Username 二选一，后者优先
 type LoginRequest struct {
-	Username string `json:"username"`                    // 用户名或邮箱
+	Username string `json:"username"`                    // 用户名、邮箱或手机号
 	Email    string `json:"email"`                       // 邮箱，语义同上
 	Password string `json:"password" binding:"required"` // 密码，必填
 }
