@@ -1759,6 +1759,115 @@
                 }
             }
         },
+        "/api/miniprogram/bind": {
+            "post": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "已登录会员（密码登录或 H5 会话）用 wx.login 的 code 把 openid 绑到自己账号上，绑完即可静默登录\n只接受 code：openid 由服务端重新换取，不接受客户端自报，否则可以把别人的收款身份挂到自己账号上",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "miniprogram"
+                ],
+                "summary": "绑定微信身份",
+                "parameters": [
+                    {
+                        "description": "wx.login 的 code",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MpBindRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "缺少 code 或 code 无效",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "该微信已绑定其他账号",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/miniprogram/wechat/login": {
+            "post": {
+                "description": "用 wx.login 的 code 换 openid；openid 未入库时按平台授权的手机号合并或新建账号，未带 phone_code 时不发令牌（422）\n响应不回 Cookie，客户端自行持有 token；请求 URL 上带 X-Client: mp_wechat",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "miniprogram"
+                ],
+                "summary": "微信小程序授权登录",
+                "parameters": [
+                    {
+                        "description": "平台凭证 code 与可选的手机号授权 code",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MpWechatLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "缺少 code 或 code 无效",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "该手机号已绑定其他微信",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "未授权手机号，客户端应拉起授权后重试",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/notifications": {
             "get": {
                 "security": [
@@ -3663,6 +3772,31 @@
                 },
                 "username": {
                     "description": "用户名、邮箱或手机号",
+                    "type": "string"
+                }
+            }
+        },
+        "models.MpBindRequest": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MpWechatLoginRequest": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "phone_code": {
                     "type": "string"
                 }
             }

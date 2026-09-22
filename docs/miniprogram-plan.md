@@ -120,7 +120,7 @@
 > openid「取自库里而非请求」的**运行期**证据要等真实渠道（`PAY_PROVIDER=wechat` 下 `Prepay` 就要外呼，MOCK 私钥走不通），当前只有代码层与「自报参数不改变结果」两层证据，记在 P2g 复验。
 
 
-### 3.2 P2b 小程序账号打通（2 人日）
+### 3.2 P2b 小程序账号打通（2 人日）— ✅ 2026-09-23 已完成
 
 **数据层**
 
@@ -138,8 +138,8 @@
 | 端点 | 入参 | 内部流程 |
 |------|------|---------|
 | `POST /api/miniprogram/wechat/login` | `{code, phone_code?}` | `code2session`（appid+secret 从环境变量）→ openid/unionid → 命中 `wx_openid` 则直接签发；未命中按 §6 合并策略 → `utils.GenerateMemberToken(memberID, username, ...)` |
-| `POST /api/miniprogram/alipay/login` | `{auth_code}` | `alipay.system.oauth.token` → `buyer_id`(2088) → 同上 |
-| `POST /api/miniprogram/bind` | `{target, verify}` | 已登录状态下把 openid/支付宝 uid 绑到当前会员（用户在小程序里手动密码登录一次即完成合并） |
+| `POST /api/miniprogram/alipay/login` | `{auth_code}` | `alipay.system.oauth.token` → `buyer_id`(2088) → 同上。**2026-09-23 调整：随 P2f 一起落**，见落地记录 4 |
+| `POST /api/miniprogram/bind` | ~~`{target, verify}`~~ → `{code}` | 已登录状态下把 openid/支付宝 uid 绑到当前会员（用户在小程序里手动密码登录一次即完成合并）。**落地时改为只收 `code`**，见落地记录 1 |
 
 - 出参结构与 `POST /api/login` 完全一致（`models.LoginResponse{token, token_type:"Bearer"}`），前端不新增分支。
 - 小程序侧把 token 存 `Taro.setStorageSync`，后续每个请求带 `Authorization` + `X-Client`。
@@ -148,6 +148,34 @@
 - CSRF：这两个登录端点是 POST 且此刻客户端还没有任何会话，语义与 `/api/login` 相同 → 加入 `csrfExemptPaths`（`middleware/csrf.go:35-40`）并在注释写明理由；`/api/miniprogram/bind` 是已登录态的写操作，**不豁免**，靠 P2a 的 Bearer 分流通过。
 
 **验收**：同一手机号在 H5 注册、在小程序登录 → 拿到同一个 `member_id`，`/api/auth/me` 返回的订单/收藏/地址与 H5 完全一致。
+
+**落地记录（2026-09-23，`PAY_PROVIDER=mock` + `WX_MP_APP_ID` 未注入）**
+
+1. **`/api/miniprogram/bind` 只收 `{code}`**，与本文原设计的 `{target, verify}` 不同：`target` 是「要绑哪个身份」、`verify` 是「二次验证」，但绑定的双方其实都已经确定——会员来自 JWT、openid 来自服务端用 `code` 重新换取。让客户端自报 openid 等于允许把**别人的收款身份**挂到自己账号上（P2a 刚清掉 `?openid=` 同一类问题），二次验证也没有可验的对象（这条链路不改密码）。
+2. **新建账号的三个占位**是数据层约束逼出来的，不是随手拼的：`email` 上有唯一索引且 `Member.Email` 不带 `omitempty`，所以小程序账号必须有唯一邮箱 → 用 `wx-<手机号>@mp.local`（手机号本身唯一，口径同 `EnsureForSSOUser` 的 `@sso.local`）；`nameRe` 只收字母，手机号编不进姓名 → 姓名固定 `Wechat User`，用户可在资料页改；引导页是 H5 独有屏（§4 把它列在第二批），`onboarded` 留 false 会让小程序首登卡在看不到的页面 → 置 true。密码随机（同 `EnsureForSSOUser`），所以这条路建出来的账号在用户主动找回密码之前无法用口令登录。
+3. **模拟身份的手机号口径**：`WX_MP_APP_ID` 含 `MOCK` 时，`phone_code` 若本身是 11 位号码就当平台授权结果使用，否则按 `sha256(code)` 派生大陆号段假号。这是让「H5 注册 → 小程序同手机号登录 → 同一 `member_id`」这条验收在没有平台资质时也能跑起来的前提；真实渠道下手机号只可能来自 `getuserphonenumber` 的解密结果，这个分支根本不执行。
+4. **`/api/miniprogram/alipay/login` 挪到 P2f**：支付宝小程序是**另一个应用**（`§3.3` 已说明 `trade.create` 需要小程序应用的密钥），`alipay.system.oauth.token` 必须用那套 `ALIPAY_MP_*` 密钥做 RSA2 签名才能调通。在本阶段落这个端点只能交出一个「只有 mock 分支、真分支缺密钥」的空壳，且要把 `payment/crypto.go` 的签名底座复制一份到 services（跨模块复用等于让鉴权依赖支付模块）。P2f 会连同 `trade.create`、`my.tradePay`、密钥一起实现。
+5. **`access_token` 做了进程内缓存**（提前 60s 过期）：微信 `cgi-bin/token` 按调用次数计配额，每次手机号授权都取一次会很快打满。
+6. 验收矩阵（28 条断言全通过，脚本 `/tmp/p2b_selftest.py`）：
+
+| 场景 | 结果 |
+|---|---|
+| H5 注册（手机号 13900000001）→ 小程序带 `phone_code` 登录 | 200，`member_id` 与注册返回的**同一个**；H5 Cookie 会话与小程序 Bearer 读到**同一条收货地址** |
+| 出参结构 | 与 `POST /api/login` 一致（`token` + `token_type:"Bearer"`），不回 Cookie |
+| 同一 `code` 二次登录（不带 `phone_code`） | 200，命中 `wx_openid` 直接签发，同一账号 |
+| 未注册手机号首登 | 200，新建 `account_type=buyer`、`username="Wechat User"`、`email=wx-13712340000@mp.local`、`onboarded=true` |
+| 只给 `code` 不给 `phone_code`（新人） | 422「需要授权手机号才能完成登录」，不发令牌 |
+| 平台返回非大陆号码 | 422「授权手机号不是有效的中国大陆号码」，库里无残留 |
+| 密码登录 → `/api/miniprogram/bind` | 200（Bearer 载体过 CSRF）；随后同一 `code` 静默登录即命中该账号 |
+| 同一 openid 绑第二个账号 | 409「该微信已绑定其他账号」 |
+| 已绑微信的手机号被另一个 openid 合并 | 409「该手机号已绑定其他微信，请先解绑或用密码登录」 |
+| 请求体注入 `openid` / `member_id` / 他人手机号 | 注入字段不参与；openid 已绑则仍回**它自己的**账号，他人手机号被 409 挡下 |
+| 无凭证调 bind | 403「缺少 CSRF Cookie」（CSRF 跑在 JWT 之前，未放宽） |
+| Cookie 会话缺 `X-CSRF-Token` / 值不匹配 | 403「CSRF 校验失败」，与改造前一致 |
+| 身份字段泄露面 | `/api/auth/me` 出参无 `wx_openid`/`wx_unionid`；库里存的是 `mock-openid-*`，`session_key` 不接进进程 |
+| 索引 | `members` 上 `wx_openid`/`wx_unionid`/`alipay_user_id` 三条 unique+sparse 已建，存量 4 个会员未受影响 |
+
+> 真实分支（`WX_MP_APP_ID` 为非 MOCK 值时的外呼与失败闭锁）与 `PAY_PROVIDER=wechat` 一样要等资质，运行期证据统一记在 P2g 复验；本阶段只有代码层证据：分岔点在 `mpWechatFetch` 一处，真实分支不带任何假数据。
 
 ### 3.3 P2c 支付形态补齐（2 人日 + 资质等待）
 
@@ -329,7 +357,7 @@ miniprogram/
 |---|---|---|---|
 | **P2-0** ✅ | 手机号：中国大陆校验 + `FindByAccount` 支持手机号 + H5 登录/注册文案 + seed 号段 | 1 | H5 用手机号+密码能登录；旧 `60` 号段注册被拒且提示明确 —— **2026-09-22 完成**：实测 `+86 139 1234 1375` 注册归一为 `13912341375`，纯数字/`+86` 带空格/邮箱/用户名四种凭据均可登录，同号重复注册 409，`60` 号段 400，SSO `admin/admin123` 与资料页 3-4-4 展示不回归 |
 | **P2a** ✅ | 端标识 + CSRF 分流 + openid 服务端解析 | 1.5 | Bearer 写接口全通；H5 三条主流程零回归 —— **2026-09-22 完成**：仅 Bearer 的「加购→下单→prepay→launch→mock-notify→query」全 200 且收敛 `success`；Cookie 路径缺/错 CSRF 头仍 403、正确则 200；Bearer+Cookie 并存按 Cookie 处理（403，未放宽）；`?openid=` 客户端自报已从代码里清除 |
-| P2b | 小程序登录绑定 + 手机号授权合并 + 索引（身份换取支持确定性 mock） | 2 | 小程序登录 → `/api/auth/me` 与 H5 同一 member |
+| **P2b** ✅ | 小程序登录 + 手机号授权合并 + 索引（身份换取支持确定性 mock） | 2 | 小程序登录 → `/api/auth/me` 与 H5 同一 member —— **2026-09-23 完成**：28 条断言全通过（合并拿同一 `member_id`、H5 建的地址小程序读到、未授权 422 不发令牌、同 openid 绑二号 409、注入 `openid`/`member_id` 不参与、Cookie 路径 CSRF 未放宽、三条 unique+sparse 索引已建且存量 4 会员未受影响）；`bind` 契约由 `{target, verify}` 改为 `{code}`，`alipay/login` 挪 P2f，见 §3.2 落地记录 |
 | P2c | 支付形态：小程序 appid 位 + `tradeno` kind + mock 分流 | 2 | 双端 IDE 里 mock 走完并收敛为 paid，重复确认不双结算 |
 | P2d-1 | 工程骨架 + `theme/tokens` 手写样式体系 + `request.js` + `useRequest` | 2 | 一端编译出包，首页能拉到真实接口数据 |
 | P2d-2 | 买家 11 屏移植 | 8 | 微信真机走通「浏览 → 加购 → 结算 → mock 支付 → 订单」 |
@@ -399,3 +427,4 @@ miniprogram/
 | 2026-09-22（当日） | 用户拍板 §10 全部决策点，方案转执行：基线提交并推 `github.com:xueguiyouheng/h5.git` 的 `main`，开工分支 `feat/miniprogram-p2`。变更四处 —— ① react-query 与 Tailwind 双双判定**不复用**（安全稳定优先），MP 侧 `useRequest` + 手写 rpx；② 中台**要移植商家发品**，新增 §4.1 与 P2e（+4~5 人日），总量升至约 24–25 人日；③ 新增 §6.1 前置改造（手机号可做登录凭据 + 中国大陆校验，现为马来西亚号段 `^60\d{9,11}$`），排为 P2-0；④ §8 拆出 P2d-1/P2d-2，明确「先 mock 跑通、资质并行、后续直接替换」的推进方式。 |
 | 2026-09-22（当日） | **P2-0 完成并推 `feat/miniprogram-p2`**：手机号改为中国大陆校验（`^1[3-9]\d{9}$`）+ `NormalizeMobile` 统一「校验/查重/入库/登录比对」四处口径（否则 `+86…` 与纯数字会绕过唯一索引变成两个账号，直接打在 §6 的合并主键上）；`FindByAccount` 支持手机号登录；H5 登录页文案与资料页 3-4-4 展示、注册页文案、seed 号段同步。实测四种凭据可登录、同号重复注册 409、`60` 号段 400。 |
 | 2026-09-22（当日） | **P2a 完成**：① CSRF 按凭证载体分流 —— `middleware/jwt.go` 的 `extractToken` 回载体并导出 `TokenCarrier(c)`，`middleware/csrf.go` 对 bearer 放行；**落地时修正本文原方案**：CSRF 是全局中间件、跑在 JWT 之前，读不到鉴权写的 context key，故判定做成不依赖顺序的纯函数。② `LaunchEnv.Client` + `X-Client` 头（非法值回落 h5），`wechat.go` 的 JSAPI 分支改由端标识强制；CORS 允许头补 `X-Client`。③ 删掉 `OpenID: ctx.Query("openid")`，换成 `PayerFunc` 注入 + `controllers.MemberPayer` 查库；`models.Member` 的 `WxOpenID`/`AlipayUserID` 两列从 P2b 提前（`json:"-"`），`WxUnionID` 与唯一索引仍留 P2b。自测矩阵见 §3.1，测试数据（2 个临时会员 + 3 单 2 支付单 1 地址 2 购物车）已按 ID 删除并回补商品 `stock/sales`。 |
+| 2026-09-23 | **P2b 完成**：小程序授权登录与手机号合并打通。① `services/mp_settings.go` + `services/mp_auth_service.go`：`code2session` → openid → 命中即签发，未命中按平台授权手机号合并或新建买家账号；`/api/miniprogram/wechat/login`（免 CSRF）与 `/api/miniprogram/bind`（Bearer 过 CSRF）两条路由，出参复用 `models.LoginResponse`。② mock 只替换「换取身份」的响应报文（`mpWechatFetch` 一处），合并与签发与真实渠道同一份代码；密钥只从 `WX_MP_APP_ID`/`WX_MP_APP_SECRET` 进，缺省含 `MOCK`，`session_key` 不接进进程、错误不带渠道原文（URL 里有 appsecret）。③ `models.Member.WxUnionID` + `members` 上 `wx_openid`/`wx_unionid`/`alipay_user_id` 三条 unique+sparse 索引，存量会员无这些字段因稀疏而被跳过，实测不受影响。④ 与本文原设计两处偏差：`bind` 只收 `{code}`（客户端自报 openid 等于允许挂别人的收款身份）、`alipay/login` 挪到 P2f（缺的是那一套小程序应用密钥与 RSA2 底座，本阶段只能交空壳）；细节与 28 条验收矩阵见 §3.2 落地记录。自测数据（3 个临时会员 + 1 条地址）已按 ID 删除。 |

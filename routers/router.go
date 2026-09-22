@@ -18,8 +18,8 @@ import (
 // SetupRouter 配置并返回 Gin 路由引擎实例
 // 中间件执行顺序: CORS -> CSRF -> ResponseMiddleware 全局生效，限流仅作用于 /api 分组
 // 路由分组:
-//   - 公开: 登录 / 注册 / 找回密码 / 引导页 / 法务文案 / 客服时段
-//   - 需鉴权: 店铺、购物车、券、地址、订单、支付、通知、帮助、会话、资料、设置、上传
+//   - 公开: 登录 / 注册 / 找回密码 / 小程序授权登录 / 引导页 / 法务文案 / 客服时段
+//   - 需鉴权: 登出、小程序身份绑定、店铺、购物车、券、地址、订单、支付、通知、帮助、会话、资料、设置、上传
 //   - 需商家身份: /api/admin/*（门店资料、轮播、类目、商品、订单处理、统计），作用域锁定在自家门店
 //   - /swagger/*  接口文档；/uploads/* 上传素材静态托管
 //   - 生产环境: 前端产物静态托管 + 前端路由兜底
@@ -35,6 +35,7 @@ func SetupRouter() *gin.Engine {
 	homeController := controllers.NewHomeController()
 	userController := controllers.NewUserController()
 	authController := controllers.NewAuthController()
+	mpAuthController := controllers.NewMPAuthController()
 	accountController := controllers.NewAccountController()
 	shopController := controllers.NewShopController()
 	tradeController := controllers.NewTradeController()
@@ -55,6 +56,8 @@ func SetupRouter() *gin.Engine {
 	{
 		// ---------- 公开接口 ----------
 		api.POST("/login", authController.Login)
+		// 小程序授权登录：此刻客户端还没有任何会话，与 /api/login 同语义，因此同批豁免 CSRF
+		api.POST("/miniprogram/wechat/login", mpAuthController.WechatLogin)
 		api.POST("/register", accountController.Register)
 		api.POST("/auth/password/reset", accountController.RequestPasswordReset)
 		api.POST("/auth/password/reset-verify", accountController.VerifyPasswordReset)
@@ -70,6 +73,8 @@ func SetupRouter() *gin.Engine {
 		protected.Use(middleware.JWTAuthMiddleware())
 		{
 			protected.POST("/logout", authController.Logout)
+			// 小程序里用密码登录后绑微信身份：已登录态的写操作，靠 Bearer 载体过 CSRF，不豁免
+			protected.POST("/miniprogram/bind", mpAuthController.BindWechat)
 			protected.GET("/users", userController.GetUsers)
 			protected.GET("/users/:id", userController.GetUserByID)
 

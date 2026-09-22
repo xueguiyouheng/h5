@@ -355,7 +355,7 @@ stores ──┬─ categories(store_id) ── subcategories(category_id)
 
 **小程序（微信 / 支付宝）**
 
-1. 登录：`wx.login` → `code2session` 换 openid + unionid，**与现在的邮箱密码账号体系做绑定/合并**（`members` 已有 `wx_openid` / `alipay_user_id` 两列，P2a 落；`wx_unionid` 与两条唯一索引随 P2b 落，合并策略按「只认平台授权手机号」）。
+1. 登录：`wx.login` → `code2session` 换 openid + unionid，**与现在的邮箱密码账号体系做绑定/合并**（`members` 的 `wx_openid` / `alipay_user_id` / `wx_unionid` 三列与三条 unique+sparse 索引已全部落库，P2b 于 2026-09-23 完成：`POST /api/miniprogram/wechat/login` + `POST /api/miniprogram/bind`，合并策略按「只认平台授权手机号」，详见 [`miniprogram-plan.md`](./miniprogram-plan.md) §3.2/§6）。
 2. JSAPI 支付：`LaunchEnv.OpenID` 必须有值 → 后端 `wechat.go` 的 JSAPI 分支已按 `X-Client: mp_wechat` 强制命中，`openid` 由服务端查会员档案注入（`payment.PayerFunc`），缺的是授权登录写入档案的那条链路（P2b）。
 3. 收货地址：小程序 `wx.chooseAddress` 可以覆盖 `/api/addresses`，无需新增接口。
 4. 定位：`wx.getLocation` 替换 `utils/locate.js`（后者返回 `null` 的兜底语义保持不变即可对接同一套 `/shop/stores/nearby`）。
@@ -372,7 +372,7 @@ stores ──┬─ categories(store_id) ── subcategories(category_id)
 
 ### 12.3 换端前要先对齐的契约
 
-- **鉴权载体**：`middleware/jwt.go extractToken()` 支持 `Authorization: Bearer`（Cookie 缺失时回落），登录响应体也回 `token`。**CSRF 已按载体分流**（2026-09-22 P2a）：`middleware/csrf.go` 在写操作里先问 `TokenCarrier(c)`，值为 `bearer`（无会话 Cookie 且带 Bearer 头）时放行 double-submit 校验——这套校验存在的唯一理由是浏览器会自动携带 Cookie，头不会被跨站自动携带，故无攻击面；Cookie 会话路径一字未改，且 **Cookie 与 Bearer 同时存在时按 Cookie 处理（仍要 CSRF 头）**，属 fail-closed。豁免清单仍是 4 条引导端点 + `/api/payment/notify/` 前缀，没有继续往里加路由。
+- **鉴权载体**：`middleware/jwt.go extractToken()` 支持 `Authorization: Bearer`（Cookie 缺失时回落），登录响应体也回 `token`。**CSRF 已按载体分流**（2026-09-22 P2a）：`middleware/csrf.go` 在写操作里先问 `TokenCarrier(c)`，值为 `bearer`（无会话 Cookie 且带 Bearer 头）时放行 double-submit 校验——这套校验存在的唯一理由是浏览器会自动携带 Cookie，头不会被跨站自动携带，故无攻击面；Cookie 会话路径一字未改，且 **Cookie 与 Bearer 同时存在时按 Cookie 处理（仍要 CSRF 头）**，属 fail-closed。豁免清单是 4 条 H5 引导端点 + `/api/payment/notify/` 前缀，2026-09-23 随 P2b 只多了一条 `/api/miniprogram/wechat/login`（小程序静默登录，此刻既无 Cookie 也无 Bearer，与 `/api/login` 同语义；入参只有平台一次性凭证，不构成新攻击面）。
 - **`PaymentResult` 落地页**：现在靠整页 302 回跳 + `?payment_id=`。App 内是 scheme 回跳，小程序内是页面 `onShow` 查询 —— **轮询 `GET /api/payment/query/{id}` 这段逻辑是三端共用的核心，务必保持单一**。
 - **域名与回调**：真实渠道要求公网 HTTPS 回调，`*_NOTIFY_URL` 目前缺省指向 `localhost`。
 - **单号与时间**：`order_no` 用 UTC 时间戳拼，跨端展示与对账要确认时区口径（客服在线时段判定已是 GMT+8）。

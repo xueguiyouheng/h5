@@ -8,6 +8,7 @@
 //
 // 写操作校验规则 (POST/PUT/DELETE/PATCH):
 //   - POST /api/login → 豁免 (引导端点, 首次设置 CSRF Cookie)
+//   - POST /api/miniprogram/wechat/login → 豁免 (小程序静默登录, 同样没有任何会话)
 //   - Authorization: Bearer 请求 → 放行 (小程序 / App 无 Cookie 会话, 见下)
 //   - 缺少 CSRF Cookie → 拒绝 (403)
 //   - CSRF Cookie 存在但 Header 缺失或不匹配 → 拒绝 (403)
@@ -38,6 +39,9 @@ var csrfExemptPaths = map[string]bool{
 	"/api/register":                   true,
 	"/api/auth/password/reset":        true,
 	"/api/auth/password/reset-verify": true,
+	// 小程序静默登录：此刻既没有 Cookie 也没有 Bearer 令牌，与 /api/login 同语义。
+	// 豁免不扩攻击面：请求体只有平台一次性凭证，能建谁的号由微信服务器认不认这个 code 决定
+	"/api/miniprogram/wechat/login": true,
 }
 
 // csrfExemptPrefixes 渠道公网回调：支付宝/微信服务器不带 Cookie 也不带会话，

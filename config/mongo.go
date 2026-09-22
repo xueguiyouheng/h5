@@ -141,6 +141,12 @@ func EnsureIndexes() {
 	}{
 		{Collections.Members, bson.D{{Key: "email", Value: 1}}, true},
 		{Collections.Members, bson.D{{Key: "mobile", Value: 1}}, true},
+		// 小程序身份：一个 openid / unionid / 支付宝 uid 只能属于一个账号，
+		// 撞库时靠唯一约束挡下，而不是靠应用层的先查后写（两个请求同时进来就会各建一个号）
+		// 敢直接加是因为下面统一 SetSparse(true)：存量会员根本没这三个字段，稀疏索引不会把它们判成重复
+		{Collections.Members, bson.D{{Key: "wx_openid", Value: 1}}, true},
+		{Collections.Members, bson.D{{Key: "wx_unionid", Value: 1}}, true},
+		{Collections.Members, bson.D{{Key: "alipay_user_id", Value: 1}}, true},
 		// 门店归属商家账号，附近店铺按营业状态取数
 		{Collections.Stores, bson.D{{Key: "owner_member_id", Value: 1}}, false},
 		{Collections.Stores, bson.D{{Key: "status", Value: 1}}, false},

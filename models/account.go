@@ -23,6 +23,8 @@ type Member struct {
 	// 渠道拿它定位「钱从谁的账户扣」，所以只能存在服务端、也只能由服务端读出
 	WxOpenID     string `bson:"wx_openid,omitempty" json:"-"`
 	AlipayUserID string `bson:"alipay_user_id,omitempty" json:"-"`
+	// WxUnionID 同一开放平台主体下该用户的稳定 ID，当前只入库留档，合并主键是平台授权的手机号
+	WxUnionID string `bson:"wx_unionid,omitempty" json:"-"`
 	// DefaultStoreID 买家当前选中的门店，商城列表/购物车/下单都按它取数
 	DefaultStoreID string `bson:"default_store_id,omitempty" json:"default_store_id,omitempty"`
 	// Longitude/Latitude 买家最近一次浏览器定位，用于「附近的门店」排序

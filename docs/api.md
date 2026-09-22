@@ -14,7 +14,7 @@
 | Base URL | `/api` | `routers/router.go` |
 | 响应信封 | `{ "code": 200, "message": "success", "data": <业务数据> }`；失败 `{ "code": <http status>, "message": "<中文错误>", "data": null }` | `middleware.Success` / `middleware.Error` |
 | JSON 命名 | **snake_case** | `models.Pagination`、`models.PageResult` |
-| 认证 | 登录签发 JWT 写入 HttpOnly Cookie（`sso_token`），后续请求靠 Cookie，不走 Authorization 头 | `middleware.SetAuthCookie` |
+| 认证 | 登录签发 JWT 写入 HttpOnly Cookie（`sso_token`），H5 后续请求靠 Cookie；小程序 / App 走 `Authorization: Bearer <token>`（令牌由登录接口回体给出，客户端本地存储） | `middleware.SetAuthCookie`、`middleware/jwt.go:extractToken` |
 | CSRF | 所有写操作（POST/PUT/PATCH/DELETE）必须带 `X-CSRF-Token`，值等于可读 Cookie `sso_csrf`；**仅带 `Authorization: Bearer`（无会话 Cookie）的请求豁免** —— double-submit 防的是浏览器自动带 Cookie，头不会被跨站自动携带 | `middleware/csrf.go`、`middleware/jwt.go:TokenCarrier`、`utils/request.js` |
 | 未授权 | 401 由前端拦截器统一 `location.href = '/login'` | `utils/request.js` |
 | 分页请求 | `page`（从 1 开始）、`page_size`（默认见各接口，上限 50） | `models.Pagination` |
@@ -92,6 +92,19 @@
 ### 2.6 `POST /api/auth/password/reset-verify` 🆕（对应 `dNt1hrNCKm` Verify）
 - Body：`{ "code": "482913", "new_password": "Ada@2027x" }` → `data: null`
 - 配套：`POST /api/auth/password/reset/resend`。
+
+### 2.7 `POST /api/miniprogram/wechat/login` 🆕（小程序授权登录，`docs/miniprogram-plan.md` §3.2/§6）
+- Body：`{ "code": "081xy...", "phone_code": "e97a..." }`，`code` 必填（`wx.login` 一次性凭证），`phone_code` 是手机号快捷授权（`getPhoneNumber`）返回的 code
+- 出参与 `POST /api/login` 完全一致：`data: { "token": "<JWT>", "token_type": "Bearer" }`；**不回 Cookie**，客户端存本地存储后每个请求带 `Authorization` + `X-Client: mp_wechat`
+- 身份链：`code` → openid（`jscode2session`）→ 命中 `members.wx_openid` 直接签发；未命中则用平台解密出的手机号合并已有会员或新建买家账号（占位姓名 `Wechat User`、占位邮箱 `<mobile>@mp.local`、`onboarded: true`）
+- 错误：422 `需要授权手机号才能完成登录`（用户拒绝授权，客户端应拉起授权后重试）、422 `授权手机号不是有效的中国大陆号码`、409 `该手机号已绑定其他微信，请先解绑或用密码登录`、400 凭证无效
+- 安全口径：入参只有平台一次性凭证，`openid` / `member_id` 一类的字段传进来不参与绑定；`session_key` 不接进进程，`wx_openid` / `wx_unionid` / `alipay_user_id` 全部 `json:"-"`，任何接口都不回吐
+- mock：环境变量 `WX_MP_APP_ID`（缺省 `wxMOCK000000000001`）/ `WX_MP_APP_SECRET` / `WX_MP_GATEWAY`（缺省 `https://api.weixin.qq.com`）；appid 缺失或含 `MOCK` 时只替换「换取身份」这一步的响应报文（`code` → 稳定派生的 openid/手机号），合并与签发逻辑与真实渠道同一份代码；模拟值一律带 `mock-` / `MOCK-` 前缀
+
+### 2.8 `POST /api/miniprogram/bind` 🆕（把微信身份绑到已登录会员）
+- 用于「拒绝手机号授权 → 用账号密码登录 → 绑定」这条路，绑完下次静默登录即命中
+- Body：`{ "code": "081xy..." }` → `data: null`；需登录态（Bearer 或 Cookie + `X-CSRF-Token`），**不豁免 CSRF**
+- 错误：409 `该微信已绑定其他账号`（同一 openid 只能属于一个会员，靠 `wx_openid` 唯一索引挡住）
 
 ---
 
