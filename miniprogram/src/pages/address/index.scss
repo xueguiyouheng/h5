@@ -1,0 +1,160 @@
+@use '../../theme/tokens.scss' as *;
+
+.addr-page {
+  min-height: 100vh;
+  padding: $space-4 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.addr-page__hint {
+  display: block;
+  margin-bottom: $space-3;
+  padding: 12px $space-2;
+  border-radius: $radius-sm;
+  background: $color-brand-soft;
+  font-size: $font-sm;
+  color: $color-brand-deep;
+}
+
+.card {
+  padding: $space-3;
+  margin-bottom: $space-3;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+// 选地址时整卡可点，给一层描边说明它是入口而不是纯展示
+.card--pick {
+  border: 1px solid $color-border;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+}
+
+.card__label {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-md;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.card__badge {
+  margin-left: 12px;
+  padding: 0 12px;
+  border-radius: $radius-pill;
+  background: $color-brand-soft;
+  font-size: $font-xs;
+  font-weight: normal;
+  color: $color-brand-deep;
+}
+
+.card__ops {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.card__op {
+  margin-left: $space-3;
+  font-size: $font-sm;
+  color: $color-brand-deep;
+}
+
+.card__line {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-text-secondary;
+}
+
+.form {
+  padding: $space-3;
+  margin-bottom: $space-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-brand;
+  background: $color-bg;
+}
+
+.form__label {
+  height: 64px;
+  font-size: $font-md;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.form__detail {
+  width: 100%;
+  height: 132px;
+  margin-top: $space-1;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-text-secondary;
+}
+
+.form__default {
+  display: flex;
+  align-items: center;
+  margin-top: $space-2;
+}
+
+.form__hint {
+  font-size: $font-sm;
+  color: $color-text-secondary;
+}
+
+.form__error {
+  display: block;
+  margin-top: $space-1;
+  font-size: $font-sm;
+  color: $color-danger;
+}
+
+.form__actions {
+  display: flex;
+  align-items: center;
+  margin-top: $space-3;
+}
+
+.form__save {
+  width: 200px;
+  height: 72px;
+  line-height: 72px;
+  font-size: $font-md;
+}
+
+.form__cancel {
+  margin-left: $space-3;
+  padding: 0 $space-3;
+  height: 72px;
+  line-height: 70px;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-pill;
+  font-size: $font-md;
+  color: $color-text-secondary;
+}
+
+.form__delete {
+  margin-left: auto;
+  font-size: $font-md;
+  color: $color-danger-deep;
+}
+
+.addr-page__add {
+  margin-top: $space-4;
+}
+
+.addr-page__foot {
+  display: block;
+  margin-top: $space-3;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.sk--addr {
+  height: 168px;
+  margin-bottom: $space-3;
+}

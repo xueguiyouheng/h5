@@ -41,6 +41,11 @@ go-gin/
 │   │   └── main.jsx            # 入口
 │   ├── vite.config.js          # Vite 配置 (含 /api proxy)
 │   └── package.json
+├── miniprogram/                # 小程序工程 (Taro 4 + React，微信/支付宝双端)
+│   ├── config/                 # 构建配置：dev 打 localhost，prod 只认 FM_API_BASE
+│   ├── src/theme/tokens.scss   # 设计 token (rpx = H5 值 ×2)，色值唯一来源
+│   ├── src/utils/request.js    # Bearer + X-Client + 静默登录 + 素材地址补全
+│   └── README.md               # 启动命令与本地开发前提
 ├── config/
 │   └── config.go               # 数据库连接池 + JWT 密钥配置
 ├── models/                     # 数据模型层
@@ -73,6 +78,7 @@ go-gin/
     ├── miniprogram-plan.md     # 微信 / 支付宝小程序落地方案（复用清单 / 后端改造 / 分期，已开工）
     ├── api.md                  # 数据接口文档
     ├── payment-integration.md  # 支付接入与切换真实渠道的契约
+    ├── backend-scalability.md   # 后端扩展性预案（并发/雪崩熔断/幂等，微服务预备节点；方案文档，未动代码）
     ├── database.md             # 数据库表结构说明
     └── sso.md                  # SSO 架构说明
 ```
@@ -165,6 +171,17 @@ cd go-gin
 GIN_MODE=release go run main.go
 # 当 frontend/dist 存在时，Go 自动托管前端构建产物
 # 访问 http://localhost:8080 即可使用完整应用
+```
+
+小程序与 App **各自独立部署**，不走 Go 托管：`miniprogram/` 构建出的 `dist/weapp` 由微信开发者工具上传到平台审核，
+接口地址在构建时由 `FM_API_BASE` 注入（正式包必须是已备案的公网 HTTPS，见 `docs/miniprogram-plan.md` §7；缺它 `build:*` 会在构建期直接失败）。
+
+```bash
+cd go-gin/miniprogram
+npm install
+npm run dev:weapp                                    # 开发（watch）：打 localhost:8080，需在开发者工具里勾「不校验合法域名」
+npm run preview:weapp                                # 一次性本地预览包：同样打 localhost:8080，编完即退出
+FM_API_BASE=https://api.your-domain.com npm run build:weapp   # 生产
 ```
 
 ### 6. API 测试

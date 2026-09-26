@@ -1,0 +1,332 @@
+@use './theme/tokens.scss' as *;
+
+page {
+  background: $color-bg;
+  color: $color-text;
+  font-size: $font-base;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Helvetica, sans-serif;
+}
+
+view,
+text {
+  box-sizing: border-box;
+}
+
+.page {
+  min-height: 100vh;
+  padding: $space-4 $page-gutter 96px;
+  background: $color-bg;
+}
+
+// 详情页与结算页要从内容区直通屏边，不留左右留白
+.page--flush {
+  padding: 0 0 148px;
+}
+
+// 两列商品栅格：首页 / 详情同类 / 类目 / 搜索结果共用
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.tip {
+  display: block;
+  margin-top: 96px;
+  text-align: center;
+  font-size: $font-md;
+  line-height: $line-lg;
+  color: $color-text-secondary;
+}
+
+.tip__action {
+  display: block;
+  margin-top: $space-4;
+  text-align: center;
+  font-size: $font-base;
+  font-weight: bold;
+  color: $color-brand-deep;
+}
+
+// 主/次按钮：多页复用同一套几何，页面只改宽度与外边距
+.btn {
+  display: block;
+  height: 102px;
+  line-height: 102px;
+  border-radius: $radius-pill;
+  text-align: center;
+  font-size: $font-lg;
+  font-weight: bold;
+  color: #ffffff;
+  background: $color-brand;
+}
+
+.btn--dim {
+  background: #e4e4e4;
+  color: #ffffff;
+}
+
+.btn--ghost {
+  background: $color-bg;
+  color: $color-text;
+  border: 1px solid $color-border-strong;
+}
+
+.btn--text {
+  background: none;
+  height: auto;
+  line-height: $line-base;
+  color: $color-text;
+  font-weight: bold;
+}
+
+// 骨架屏占位：几何在多页重复，放全局避免每页抄一遍同值
+.sk {
+  border-radius: $radius-md;
+  background: $color-border-soft;
+}
+
+.sk--card {
+  width: 306px;
+  height: 420px;
+}
+
+.sk-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: $space-5;
+}
+
+.sk--banner {
+  margin-top: $space-4;
+  height: $banner-height;
+}
+
+.sk--line {
+  display: block;
+  height: 28px;
+  margin-top: $space-3;
+  border-radius: $radius-sm;
+}
+
+.w-40 {
+  width: 40%;
+}
+
+.w-60 {
+  width: 60%;
+}
+
+// 渠道角标：结算页与收银台共用，颜色是渠道身份不做主题化
+.pay-mark {
+  display: inline-block;
+  height: 44px;
+  line-height: 44px;
+  padding: 0 $space-2;
+  border-radius: 12px;
+  font-size: $font-xs;
+  color: #ffffff;
+}
+
+.pay-mark--wechat {
+  background: #07c160;
+}
+
+.pay-mark--alipay {
+  background: #1677ff;
+}
+
+// 数量步进与勾选框在购物车、详情、结算多处复用，样式只留一份
+.stepper {
+  display: flex;
+  align-items: center;
+  margin: 0 $space-3;
+  height: 68px;
+  border: 1px solid $color-border;
+  border-radius: $radius-pill;
+}
+
+.stepper__btn {
+  width: 62px;
+  text-align: center;
+  font-size: $font-lg;
+  color: $color-text;
+}
+
+.stepper__btn--dim {
+  color: $color-border-strong;
+}
+
+.stepper__num {
+  width: 52px;
+  text-align: center;
+  font-size: $font-base;
+  color: $color-text;
+}
+
+.check {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin-right: $space-3;
+  border: 1px solid $color-border-strong;
+  border-radius: 50%;
+  background: $color-bg;
+}
+
+.check--on {
+  border-color: $color-brand;
+  background: $color-brand;
+  position: relative;
+}
+
+.check--on::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 8px;
+  width: 10px;
+  height: 18px;
+  border: solid #ffffff;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+// 筛选标签：类目页与搜索页共用一套几何，选中态是浅绿底
+.chip {
+  display: inline-block;
+  height: 64px;
+  line-height: 64px;
+  margin-right: $space-2;
+  padding: 0 $space-3;
+  border-radius: $radius-pill;
+  background: $color-bg-card;
+  font-size: $font-md;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.chip--on {
+  background: $color-brand-soft;
+  color: $color-brand-deep;
+  font-weight: bold;
+}
+
+// 分组块：标题 + 内容，结算页与订单详情共用同一套节奏
+.block {
+  margin-bottom: $space-5;
+}
+
+.block__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.block__title {
+  display: block;
+  margin-bottom: $space-2;
+  font-size: $font-base;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.block__action {
+  font-size: $font-sm;
+  color: $color-brand-deep;
+}
+
+.block__foot {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-text-secondary;
+}
+
+// 收货信息卡：结算页与订单详情都是「标签 + 明细」这两行
+.addr {
+  padding: $space-3;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+.addr__label {
+  display: block;
+  font-size: $font-md;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.addr__detail {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-text-secondary;
+}
+
+.addr__empty {
+  display: block;
+  padding: $space-3;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+// 金额明细行与合计行
+.sum__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.sum__label {
+  font-size: $font-md;
+  color: $color-text-secondary;
+}
+
+.sum__value {
+  font-size: $font-md;
+  color: $color-text-strong;
+}
+
+.sum__value--cut {
+  color: $color-brand-deep;
+}
+
+.sum__hint {
+  display: block;
+  margin-top: 4px;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.sum__empty {
+  padding: $space-2 0;
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-3 0;
+  border-top: 1px solid $color-bg-divider;
+}
+
+.total__label {
+  font-size: $font-lg;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.total__value {
+  font-size: $font-xl;
+  font-weight: bold;
+  color: $color-brand;
+}
+
+

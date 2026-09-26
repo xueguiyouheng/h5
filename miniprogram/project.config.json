@@ -1,0 +1,33 @@
+{
+  "miniprogramRoot": "dist/weapp/",
+  "projectname": "freshmart-miniprogram",
+  "description": "生鲜商城微信小程序（独立工程，产物只含 dist/weapp）",
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "libVersion": "2.25.3",
+  "setting": {
+    "urlCheck": false,
+    "es6": false,
+    "enhance": false,
+    "postcss": false,
+    "minified": false,
+    "coverView": false,
+    "nodeModules": false,
+    "checkInvalidKey": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "condition": {},
+  "srcMiniprogramRoot": "dist/weapp/",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
+}

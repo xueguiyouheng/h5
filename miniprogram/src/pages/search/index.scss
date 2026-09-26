@@ -1,0 +1,88 @@
+@use '../../theme/tokens.scss' as *;
+
+.search {
+  min-height: 100vh;
+  padding: $space-3 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.search__bar {
+  display: flex;
+  align-items: center;
+}
+
+.search__input {
+  flex: 1;
+  min-width: 0;
+  height: 76px;
+  padding: 0 $space-3;
+  border-radius: $radius-pill;
+  background: $color-bg-card;
+  font-size: $font-md;
+  color: $color-text;
+}
+
+.search__go {
+  flex-shrink: 0;
+  margin-left: $space-2;
+  padding: 0 $space-4;
+  height: 76px;
+  line-height: 76px;
+  border-radius: $radius-pill;
+  background: $color-brand;
+  font-size: $font-md;
+  color: #ffffff;
+}
+
+.hot__title {
+  display: block;
+  margin-top: $space-5;
+  margin-bottom: $space-3;
+  font-size: $font-lg;
+  line-height: $line-lg;
+  font-weight: 500;
+  color: $color-text-strong;
+}
+
+.hot__rail {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.hot__loading {
+  font-size: $font-sm;
+  line-height: 64px;
+  color: $color-text-muted;
+}
+
+.hot__desc {
+  display: block;
+  margin-top: $space-3;
+  font-size: $font-xs;
+  line-height: $line-sm;
+  color: $color-text-muted;
+}
+
+.search__state {
+  display: block;
+  margin: $space-4 0 $space-3;
+  font-size: $font-sm;
+  color: $color-text-secondary;
+}
+
+.search__grid {
+  transition: opacity 0.2s;
+}
+
+// 换关键词时上一次结果压暗留着，不做「清空—骨架—回填」
+.search__grid--dim {
+  opacity: 0.5;
+}
+
+.search__more {
+  display: block;
+  margin-top: $space-3;
+  text-align: center;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}

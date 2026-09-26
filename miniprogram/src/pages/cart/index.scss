@@ -1,0 +1,93 @@
+@use '../../theme/tokens.scss' as *;
+
+.cart {
+  min-height: 100vh;
+  padding: $space-4 $page-gutter 268px;
+  background: $color-bg;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-bg-divider;
+}
+
+.row__img {
+  flex-shrink: 0;
+  width: 140px;
+  height: 140px;
+  margin-right: $space-3;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+.row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row__name {
+  display: block;
+  font-size: $font-base;
+  line-height: $line-base;
+  color: $color-text;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.row__price {
+  display: block;
+  margin-top: 12px;
+  font-size: $font-md;
+  color: $color-text-strong;
+  font-weight: 500;
+}
+
+.row__sub {
+  display: block;
+  margin-top: 4px;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.sk--row {
+  width: 320px;
+  height: 164px;
+  border-radius: $radius-md;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  margin-top: $space-4;
+}
+
+.bar__all {
+  font-size: $font-md;
+  color: $color-text-secondary;
+}
+
+.bar__total {
+  margin-left: auto;
+  font-size: $font-md;
+  color: $color-text-secondary;
+}
+
+.checkout {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: $space-3 $page-gutter 28px;
+  background: $color-bg;
+  border-top: 1px solid $color-bg-divider;
+}
+
+.checkout__fee {
+  display: block;
+  margin-bottom: 12px;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}

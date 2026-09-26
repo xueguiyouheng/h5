@@ -1,0 +1,96 @@
+@use '../../theme/tokens.scss' as *;
+
+// 卡片几何只有一处来源：宽 306 是按页面左右留白 60 排出来的两列（306×2 + 18 = 630）
+.card {
+  position: relative;
+  width: 306px;
+  margin-bottom: $space-4;
+  padding: 0 $space-3 $space-3;
+  border-radius: $radius-xl;
+  background: $color-bg-card;
+}
+
+// 图压在文字上方留白区，不越过标题（沿用 H5 的卡片规则）
+.card__img {
+  width: 100%;
+  height: 260px;
+  display: block;
+  border-radius: $radius-md;
+  background: $color-bg-divider;
+}
+
+.card__badge {
+  position: absolute;
+  top: $space-2;
+  left: $space-2;
+  max-width: 240px;
+  padding: 0 $space-2;
+  height: 36px;
+  line-height: 36px;
+  border-radius: $radius-pill;
+  background: rgba(0, 184, 97, 0.12);
+  color: $color-brand-deep;
+  font-size: $font-xs;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.card__name {
+  display: block;
+  margin-top: $space-3;
+  font-size: $font-md;
+  line-height: $line-sm;
+  color: $color-text;
+  height: $line-sm * 2;
+  overflow: hidden;
+}
+
+.card__prices {
+  display: flex;
+  align-items: baseline;
+  margin-top: $space-1;
+}
+
+.card__price {
+  font-size: $font-base;
+  color: $color-brand;
+  font-weight: 500;
+}
+
+.card__old {
+  margin-left: $space-2;
+  font-size: $font-xs;
+  color: $color-text-muted;
+  text-decoration: line-through;
+}
+
+.card__foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $space-1;
+}
+
+.card__add {
+  padding: 0 $space-3;
+  height: 44px;
+  line-height: 44px;
+  border-radius: $radius-pill;
+  background: $color-brand-soft;
+  color: $color-brand-deep;
+  font-size: $font-xs;
+}
+
+.card__soldout {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 $space-3;
+  height: 44px;
+  line-height: 44px;
+  border-radius: $radius-pill;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  font-size: $font-xs;
+}

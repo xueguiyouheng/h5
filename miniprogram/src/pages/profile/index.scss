@@ -1,0 +1,117 @@
+@use '../../theme/tokens.scss' as *;
+
+.me {
+  min-height: 100vh;
+  padding: $space-4 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.me__head {
+  display: flex;
+  align-items: center;
+  padding-bottom: $space-4;
+  border-bottom: 1px solid $color-bg-divider;
+}
+
+.me__avatar {
+  flex-shrink: 0;
+  width: $avatar-size;
+  height: $avatar-size;
+  margin-right: $space-3;
+  border-radius: 50%;
+  background: $color-bg-card;
+}
+
+.me__avatar--empty {
+  background: $color-border-soft;
+}
+
+.me__id {
+  flex: 1;
+  min-width: 0;
+}
+
+.me__name {
+  display: block;
+  font-size: $font-lg;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.me__mobile {
+  display: block;
+  margin-top: 4px;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.me__badge {
+  flex-shrink: 0;
+  padding: 0 $space-2;
+  height: 44px;
+  line-height: 44px;
+  border-radius: $radius-pill;
+  background: $color-brand-soft;
+  font-size: $font-xs;
+  color: $color-brand-deep;
+}
+
+.me__menu {
+  margin-top: $space-2;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  height: 108px;
+  border-bottom: 1px solid $color-bg-divider;
+}
+
+.row__label {
+  font-size: $font-base;
+  color: $color-text;
+}
+
+.row__value {
+  flex: 1;
+  min-width: 0;
+  margin-left: $space-3;
+  text-align: right;
+  font-size: $font-sm;
+  color: $color-text-muted;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.row__arrow {
+  margin-left: $space-2;
+  font-size: $font-lg;
+  color: $color-border-strong;
+}
+
+.me__signout {
+  display: block;
+  margin-top: $space-6;
+  height: 96px;
+  line-height: 96px;
+  text-align: center;
+  border-radius: $radius-pill;
+  border: 1px solid $color-border-strong;
+  font-size: $font-base;
+  color: $color-text-secondary;
+}
+
+.me__foot {
+  display: block;
+  margin-top: $space-4;
+  font-size: $font-xs;
+  line-height: $line-sm;
+  color: $color-text-muted;
+}
+
+.sk--profile {
+  height: $avatar-size;
+  width: 100%;
+  margin-bottom: $space-4;
+}

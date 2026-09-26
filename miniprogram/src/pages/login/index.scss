@@ -1,0 +1,167 @@
+@use '../../theme/tokens.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding: 96px $page-gutter 0;
+  background: $color-bg;
+}
+
+.brand {
+  font-size: $font-2xl;
+  font-weight: 600;
+  color: $color-brand;
+}
+
+.headline {
+  margin-top: $space-5;
+  font-size: $font-title;
+  line-height: $line-title;
+  color: $color-text-strong;
+}
+
+.sub {
+  margin-top: $space-3;
+  font-size: $font-md;
+  line-height: $line-lg;
+  color: $color-text-secondary;
+}
+
+// ---------- 账号密码：主路径 ----------
+.form {
+  margin-top: 72px;
+}
+
+.input {
+  height: 96px;
+  padding: 0 $space-4;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-bg;
+  font-size: $font-base;
+  color: $color-text;
+
+  & + & {
+    margin-top: $space-3;
+  }
+}
+
+.primary {
+  margin-top: $space-5;
+  height: 96px;
+  line-height: 96px;
+  border-radius: $radius-pill;
+  background: $color-brand;
+  color: #ffffff;
+  font-size: $font-lg;
+
+  &.button-hover {
+    background: $color-brand-deep;
+  }
+
+  &[disabled] {
+    background: $color-brand;
+    color: #ffffff;
+  }
+}
+
+.foot {
+  margin-top: $space-4;
+  text-align: center;
+  font-size: $font-md;
+  line-height: $line-lg;
+}
+
+.foot__ask {
+  color: $color-text-secondary;
+}
+
+.foot__link {
+  color: $color-brand;
+}
+
+.divider {
+  margin-top: $space-6;
+  text-align: center;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: $color-border;
+  }
+}
+
+.divider__text {
+  position: relative;
+  padding: 0 $space-3;
+  background: $color-bg;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+// ---------- 平台授权：次级入口 ----------
+.auth-btn {
+  margin-top: $space-4;
+  height: 96px;
+  line-height: 92px;
+  border-radius: $radius-pill;
+  border: 1px solid $color-brand;
+  background: $color-bg;
+  color: $color-brand;
+  font-size: $font-lg;
+  box-sizing: border-box;
+
+  &.button-hover {
+    background: $color-brand-soft;
+  }
+}
+
+.tip {
+  margin-top: $space-4;
+  font-size: $font-md;
+  line-height: $line-lg;
+  color: $color-danger-deep;
+}
+
+.dev {
+  margin-top: $space-6;
+  padding: $space-4;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-xl;
+  background: $color-bg-divider;
+}
+
+.dev__label {
+  font-size: $font-sm;
+  color: $color-text-secondary;
+}
+
+.dev__input {
+  margin-top: $space-3;
+  height: 80px;
+  padding: 0 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-bg;
+  font-size: $font-base;
+  color: $color-text;
+}
+
+.dev__btn {
+  margin-top: $space-3;
+  height: 80px;
+  line-height: 80px;
+  border-radius: $radius-pill;
+  background: $color-bg-card;
+  color: $color-text-strong;
+  font-size: $font-base;
+  border: 1px solid $color-border;
+
+  &[disabled] {
+    color: $color-text-muted;
+  }
+}

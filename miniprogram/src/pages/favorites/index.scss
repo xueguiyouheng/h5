@@ -1,0 +1,172 @@
+@use '../../theme/tokens.scss' as *;
+
+.favorites {
+  min-height: 100vh;
+  padding: $space-3 $page-gutter 268px;
+  background: $color-bg;
+}
+
+.favbar {
+  display: flex;
+  align-items: center;
+}
+
+.favbar__input {
+  flex: 1;
+  min-width: 0;
+  height: 76px;
+  padding: 0 $space-3;
+  border-radius: $radius-pill;
+  background: $color-bg-card;
+  font-size: $font-md;
+  color: $color-text;
+}
+
+.favbar__clear {
+  flex-shrink: 0;
+  margin-left: $space-2;
+  font-size: $font-sm;
+  color: $color-text-secondary;
+}
+
+.fav__notice {
+  display: block;
+  margin-top: $space-2;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-danger-deep;
+}
+
+.fav__notice--ok {
+  color: $color-brand-deep;
+}
+
+.fav__list {
+  margin-top: $space-2;
+  transition: opacity 0.2s;
+}
+
+// 换关键词/回到本页重取时，旧的那批压暗留着，不做「清空—骨架—回填」
+.fav__list--dim {
+  opacity: 0.5;
+}
+
+.fav {
+  display: flex;
+  align-items: center;
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-bg-divider;
+}
+
+.fav__img {
+  flex-shrink: 0;
+  width: 140px;
+  height: 140px;
+  margin-right: $space-3;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+.fav__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.fav__titlerow {
+  display: flex;
+  align-items: center;
+}
+
+.fav__name {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-base;
+  line-height: $line-base;
+  color: $color-text;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// 售罄标记要给标题留出行宽，所以与标题同排而不是压在图下
+.fav__out {
+  flex-shrink: 0;
+  margin-left: $space-1;
+  padding: 0 $space-1;
+  border-radius: $radius-pill;
+  background: rgba($color-danger-deep, 0.08);
+  font-size: $font-xs;
+  line-height: 28px;
+  color: $color-danger-deep;
+}
+
+// 别家门店的收藏要和当前门店区分开，否则一键加购之后门店怎么换的没人说得清
+.fav__store {
+  flex-shrink: 0;
+  margin-left: $space-1;
+  padding: 0 $space-1;
+  border-radius: $radius-pill;
+  background: rgba($color-brand, 0.08);
+  font-size: $font-xs;
+  line-height: 28px;
+  color: $color-brand-deep;
+}
+
+.fav__price {
+  display: block;
+  margin-top: 12px;
+  font-size: $font-md;
+  font-weight: 500;
+  color: $color-text-strong;
+}
+
+.fav__drop {
+  flex-shrink: 0;
+  margin-left: $space-2;
+  padding: 0 8px;
+  font-size: $font-lg;
+  line-height: $line-base;
+  color: $color-text-muted;
+}
+
+// 售罄的行置灰，与 check--on 互斥：整批加购混进售罄行会把能买的也挡掉
+.check--off {
+  border-color: $color-border;
+  background: $color-bg-divider;
+}
+
+.fav__more {
+  display: block;
+  padding: $space-3 0;
+  text-align: center;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.fav__empty {
+  padding-bottom: $space-5;
+}
+
+.fav__foot {
+  display: flex;
+  align-items: center;
+  margin-top: $space-4;
+}
+
+.fav__all {
+  font-size: $font-md;
+  color: $color-text-secondary;
+}
+
+.fav__total {
+  margin-left: auto;
+  font-size: $font-md;
+  color: $color-text-secondary;
+}
+
+.fav__submit {
+  position: fixed;
+  left: $page-gutter;
+  right: $page-gutter;
+  bottom: 28px;
+}

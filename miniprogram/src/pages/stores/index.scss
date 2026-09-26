@@ -1,0 +1,90 @@
+@use '../../theme/tokens.scss' as *;
+
+.stores {
+  min-height: 100vh;
+  padding: $space-3 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.stores__hint {
+  display: block;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.stores__relocate {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-sm;
+  color: $color-brand-deep;
+}
+
+.store {
+  display: flex;
+  align-items: flex-start;
+  padding: $space-3;
+  margin-top: $space-3;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+.store--on {
+  border: 1px solid $color-brand;
+}
+
+.store__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.store__name {
+  display: block;
+  font-size: $font-base;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.store__chip {
+  margin-left: 12px;
+  padding: 0 12px;
+  border-radius: $radius-pill;
+  background: $color-brand-soft;
+  font-size: $font-xs;
+  font-weight: normal;
+  color: $color-brand-deep;
+}
+
+.store__addr {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-text-secondary;
+}
+
+.store__notice {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-xs;
+  line-height: $line-sm;
+  color: $color-danger-deep;
+}
+
+.store__min {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.store__side {
+  flex-shrink: 0;
+  margin-left: $space-2;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.sk--store {
+  height: 172px;
+  margin-top: $space-3;
+}

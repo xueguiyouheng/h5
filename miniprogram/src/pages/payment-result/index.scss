@@ -1,0 +1,96 @@
+@use '../../theme/tokens.scss' as *;
+
+.result {
+  min-height: 100vh;
+  padding: $space-6 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.result__head {
+  text-align: center;
+}
+
+.result__money {
+  display: block;
+  font-size: $font-title;
+  line-height: $line-title;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.result__no {
+  display: block;
+  margin-top: $space-1;
+  font-size: $font-xs;
+  color: $color-text-muted;
+  word-break: break-all;
+}
+
+.result__sk {
+  margin-top: $space-5;
+}
+
+.status {
+  position: relative;
+  margin-top: $space-6;
+  padding: $space-4 $space-3 44px;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+.status--ok {
+  background: $color-brand-soft;
+}
+
+.status__title {
+  display: block;
+  font-size: $font-lg;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.status__desc {
+  display: block;
+  margin-top: $space-1;
+  font-size: $font-md;
+  line-height: $line-base;
+  color: $color-text-secondary;
+}
+
+// 渠道回传的原始状态码留在页面上，排障时不用再抓包
+.status__raw {
+  display: block;
+  margin-top: $space-1;
+  font-size: $font-xs;
+  color: $color-text-muted;
+  word-break: break-all;
+}
+
+.status__close {
+  position: absolute;
+  right: $space-3;
+  bottom: $space-2;
+  font-size: $font-sm;
+  color: $color-text-secondary;
+}
+
+.result__actions {
+  margin-top: $space-6;
+}
+
+.result__link {
+  display: block;
+  margin-top: $space-4;
+  text-align: center;
+  font-size: $font-base;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.result__retry {
+  display: block;
+  margin-top: $space-5;
+  text-align: center;
+  font-size: $font-md;
+  color: $color-brand-deep;
+}

@@ -1,0 +1,59 @@
+// 设计 token —— 从 frontend/src 实际用到的色值与尺寸移植（编译后 1px = 1rpx）
+// 规则：页面样式里不允许出现裸色值，一切从这里取，否则重演 H5「74 个色值散落 503 处」那笔债
+
+// ---------- 色板 ----------
+$color-brand: #00b861; // 主按钮绿 / 价格
+$color-brand-deep: #00894a; // 按下与描边态
+$color-brand-soft: #e6f8ef; // 选中底、成功底
+$color-danger: #f50000; // 库存不足、错误提示
+$color-danger-deep: #b42318; // 红色文字（浅底上比 #f50000 可读）
+
+$color-text-strong: #181d2d; // 标题、金额
+$color-text: #202020; // 正文
+$color-text-secondary: #8b93a1; // 次级说明
+$color-text-muted: #b6bbb9; // 占位、时间戳、单号
+
+$color-bg: #ffffff; // 页面底
+$color-bg-card: #f9f8f6; // 卡片底
+$color-bg-divider: #f4f5f7; // 分组分隔底
+$color-border: #e6e9ee; // 描边
+$color-border-soft: #eef0f3; // 更浅的描边 / 骨架屏
+$color-border-strong: #d6dbe1;
+
+// ---------- 字号 / 行高（H5 数值 × 2）----------
+$font-xs: 22px; // 11
+$font-sm: 24px; // 12
+$font-md: 26px; // 13
+$font-base: 28px; // 14
+$font-lg: 32px; // 16
+$font-xl: 36px; // 18
+$font-2xl: 40px; // 20
+$font-title: 52px; // 26 页面主金额
+
+$line-xs: 32px;
+$line-sm: 36px;
+$line-base: 40px;
+$line-lg: 48px;
+$line-title: 70px;
+
+// ---------- 间距（H5 数值 × 2）----------
+$space-1: 12px; // 6
+$space-2: 20px; // 10
+$space-3: 28px; // 14
+$space-4: 36px; // 18
+$space-5: 40px; // 20
+$space-6: 56px; // 28
+$page-gutter: 60px; // 30 页面左右留白，全端统一
+
+// ---------- 圆角 ----------
+$radius-sm: 16px; // 8
+$radius-md: 24px; // 12
+$radius-lg: 30px; // 15 banner
+$radius-xl: 36px; // 18 卡片
+$radius-pill: 999px;
+
+// ---------- 组件尺寸 ----------
+$tile-image-height: 398px; // 商品卡图 159×199 的 2 倍
+$banner-height: 226px; // 315×113
+$chip-size: 86px; // 类目圆底 43
+$avatar-size: 88px;

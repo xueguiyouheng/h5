@@ -1,0 +1,142 @@
+@use '../../theme/tokens.scss' as *;
+
+.orders {
+  min-height: 100vh;
+  padding: 0 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: $space-2 0;
+  background: $color-bg;
+}
+
+.tabs__item {
+  margin-right: $space-5;
+  padding-bottom: 8px;
+  font-size: $font-base;
+  color: $color-text-muted;
+  border-bottom: 2px solid transparent;
+}
+
+.tabs__item--on {
+  font-weight: bold;
+  color: $color-brand;
+  border-bottom-color: $color-brand;
+}
+
+.tabs__count {
+  margin-left: auto;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.orders__sk {
+  margin-top: $space-3;
+}
+
+.sk--order {
+  height: 232px;
+  margin-bottom: $space-3;
+}
+
+.orders__list {
+  transition: opacity 0.2s;
+}
+
+// 切 tab 时旧订单先压暗留着，新数据到了再换，不做「清空—骨架—回填」那套闪屏
+.orders__list--dim {
+  opacity: 0.5;
+}
+
+.order {
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-bg-divider;
+}
+
+.order__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.order__no {
+  font-size: $font-md;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.order__state {
+  font-size: $font-sm;
+  color: $color-text;
+}
+
+.order__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.order__date {
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.order__pay {
+  font-size: $font-xs;
+}
+
+.order__pay--wait {
+  color: $color-danger-deep;
+}
+
+.order__pay--ok {
+  color: $color-brand-deep;
+}
+
+.order__goods {
+  display: flex;
+  align-items: center;
+  margin-top: $space-2;
+}
+
+.order__img {
+  width: 108px;
+  height: 108px;
+  margin-right: 12px;
+  border-radius: $radius-sm;
+  background: $color-bg-card;
+}
+
+.order__sum {
+  margin-left: auto;
+  text-align: right;
+}
+
+.order__count {
+  display: block;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.order__total {
+  display: block;
+  margin-top: 4px;
+  font-size: $font-lg;
+  font-weight: bold;
+  color: $color-brand;
+}
+
+.orders__more {
+  display: block;
+  margin-top: $space-4;
+  text-align: center;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}

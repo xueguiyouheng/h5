@@ -1,0 +1,56 @@
+@use '../../theme/tokens.scss' as *;
+
+.cat {
+  min-height: 100vh;
+  padding: $space-3 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.cat__rail {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.cat__sub {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: $space-2;
+}
+
+// 子类目标签比类目标签矮一档，标签本体样式在全局的 .chip
+.cat__sub .chip {
+  height: 52px;
+  line-height: 52px;
+  margin-bottom: $space-1;
+  font-size: $font-sm;
+}
+
+.cat__count {
+  display: block;
+  margin: $space-2 0 $space-3;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.cat__grid {
+  transition: opacity 0.2s;
+}
+
+// 换类目/子类目时上一批压暗留着，新数据到了再换回来
+.cat__grid--dim {
+  opacity: 0.5;
+}
+
+.cat__loading {
+  font-size: $font-sm;
+  line-height: 64px;
+  color: $color-text-muted;
+}
+
+.cat__more {
+  display: block;
+  margin-top: $space-3;
+  text-align: center;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}

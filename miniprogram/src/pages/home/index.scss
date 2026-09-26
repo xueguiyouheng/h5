@@ -1,0 +1,138 @@
+@use '../../theme/tokens.scss' as *;
+
+.hello {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.hello__text {
+  font-size: $font-xl;
+  line-height: $line-lg;
+  color: $color-text-strong;
+  font-weight: 500;
+}
+
+.hello__store {
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.banner {
+  margin-top: $space-4;
+  height: $banner-height;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+.banner__img {
+  width: 100%;
+  height: $banner-height;
+  display: block;
+}
+
+.section {
+  margin-top: $space-5;
+}
+
+.section__title {
+  display: block;
+  margin-bottom: $space-3;
+  font-size: $font-lg;
+  line-height: $line-lg;
+  color: $color-text-strong;
+  font-weight: 500;
+}
+
+.rail {
+  white-space: nowrap;
+  width: 100%;
+}
+
+.rail__cell {
+  display: inline-block;
+  width: 306px;
+  margin-right: $space-3;
+}
+
+.feed__state {
+  display: block;
+  margin-top: $space-3;
+  text-align: center;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.gate__title {
+  display: block;
+  margin-top: 96px;
+  font-size: $font-title;
+  line-height: $line-title;
+  color: $color-text-strong;
+}
+
+.gate__desc {
+  display: block;
+  margin-top: $space-3;
+  font-size: $font-md;
+  line-height: $line-lg;
+  color: $color-text-secondary;
+}
+
+.gate__btn {
+  margin-top: 72px;
+  height: 96px;
+  line-height: 96px;
+  border-radius: $radius-pill;
+  background: $color-brand;
+  color: #ffffff;
+  font-size: $font-lg;
+}
+
+.searchbar {
+  display: flex;
+  align-items: center;
+  height: 76px;
+  margin-top: $space-4;
+  padding: 0 $space-3;
+  border-radius: $radius-pill;
+  background: $color-bg-card;
+  color: $color-text-muted;
+  font-size: $font-md;
+}
+
+.searchbar__icon {
+  margin-right: $space-2;
+  font-size: $font-base;
+}
+
+// 门店是当前数据归属的入口，放在搜索条下面一行，切店要能从首页一步到
+.storebar {
+  display: flex;
+  align-items: center;
+  margin-top: $space-2;
+  padding: 0 $space-3;
+  height: 64px;
+}
+
+.storebar__label {
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.storebar__name {
+  flex: 1;
+  min-width: 0;
+  margin-left: $space-2;
+  font-size: $font-md;
+  color: $color-text-strong;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.storebar__arrow {
+  margin-left: $space-2;
+  font-size: $font-lg;
+  color: $color-border-strong;
+}

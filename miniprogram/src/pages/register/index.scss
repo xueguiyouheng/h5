@@ -1,0 +1,159 @@
+@use '../../theme/tokens.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding: $space-5 $page-gutter $space-6;
+  background: $color-bg;
+}
+
+.headline {
+  font-size: $font-xl;
+  line-height: $line-title;
+  color: $color-text-strong;
+}
+
+.pills {
+  margin-top: $space-3;
+  display: flex;
+  gap: $space-2;
+}
+
+.pill {
+  height: 60px;
+  line-height: 56px;
+  padding: 0 $space-4;
+  border: 1px solid $color-border;
+  border-radius: $radius-pill;
+  background: $color-bg;
+  color: $color-text-secondary;
+  font-size: $font-md;
+  box-sizing: border-box;
+}
+
+.pill--on {
+  border-color: $color-brand;
+  background: $color-brand;
+  color: #ffffff;
+}
+
+.hint {
+  margin-top: $space-2;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-text-muted;
+}
+
+.form {
+  margin-top: $space-5;
+}
+
+.field {
+  margin-bottom: $space-4;
+}
+
+.field__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.field__label {
+  font-size: $font-md;
+  line-height: $line-lg;
+  color: $color-text-secondary;
+}
+
+.field__input {
+  height: 88px;
+  padding: 0 $space-3;
+  border-bottom: 1px solid $color-border-strong;
+  font-size: $font-base;
+  color: $color-text;
+  box-sizing: border-box;
+}
+
+.field__input--bad {
+  border-bottom-color: $color-danger;
+}
+
+.field__error {
+  display: block;
+  margin-top: $space-1;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-danger-deep;
+}
+
+.strength {
+  font-size: $font-sm;
+  line-height: $line-sm;
+}
+
+.strength--weak {
+  color: $color-danger-deep;
+}
+
+.strength--medium {
+  color: $color-text-secondary;
+}
+
+.strength--strong {
+  color: $color-brand;
+}
+
+.geo {
+  margin: -$space-2 0 $space-4;
+}
+
+.geo__link {
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-brand;
+}
+
+.geo__hint {
+  margin-left: $space-2;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.tip {
+  margin-top: $space-2;
+  font-size: $font-md;
+  line-height: $line-lg;
+  color: $color-danger-deep;
+}
+
+.primary {
+  margin-top: $space-6;
+  height: 96px;
+  line-height: 96px;
+  border-radius: $radius-pill;
+  background: $color-brand;
+  color: #ffffff;
+  font-size: $font-lg;
+
+  &.button-hover {
+    background: $color-brand-deep;
+  }
+
+  &[disabled] {
+    background: $color-brand;
+    color: #ffffff;
+  }
+}
+
+.foot {
+  margin-top: $space-4;
+  text-align: center;
+  font-size: $font-md;
+  line-height: $line-lg;
+}
+
+.foot__ask {
+  color: $color-text-secondary;
+}
+
+.foot__link {
+  color: $color-brand;
+}

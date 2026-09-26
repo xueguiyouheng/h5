@@ -1,0 +1,166 @@
+@use '../../theme/tokens.scss' as *;
+
+// 分组块 / 地址卡 / 金额行 / 合计行取 app.scss 的全局，本页只有状态、轨迹与商品行
+.detail {
+  min-height: 100vh;
+  padding: $space-4 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.state {
+  padding: $space-4 $space-3;
+  margin-bottom: $space-5;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+.state__title {
+  display: block;
+  font-size: $font-xl;
+  line-height: $line-lg;
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.state__sub {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.state__pay {
+  display: inline-block;
+  margin-top: $space-2;
+  padding: 0 $space-2;
+  border-radius: $radius-pill;
+  font-size: $font-sm;
+  line-height: 44px;
+  color: #ffffff;
+}
+
+.state__pay--wait {
+  background: $color-danger;
+}
+
+.state__pay--ok {
+  background: $color-brand;
+}
+
+.track {
+  margin-bottom: $space-5;
+  padding-left: 8px;
+}
+
+.track__step {
+  position: relative;
+  padding: 0 0 $space-4 40px;
+  border-left: 2px solid $color-border;
+}
+
+.track__step:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.track__dot {
+  position: absolute;
+  left: -11px;
+  top: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: $color-border-strong;
+}
+
+.track__step--done {
+  border-left-color: $color-brand;
+}
+
+.track__step--done .track__dot {
+  background: $color-brand;
+}
+
+.track__label {
+  display: block;
+  font-size: $font-md;
+  color: $color-text;
+}
+
+.track__step--done .track__label {
+  font-weight: bold;
+  color: $color-text-strong;
+}
+
+.track__at {
+  display: block;
+  margin-top: 4px;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  padding: $space-2 0;
+  border-bottom: 1px solid $color-bg-divider;
+}
+
+.item__img {
+  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+  margin-right: $space-3;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+.item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.item__name {
+  display: block;
+  font-size: $font-base;
+  line-height: $line-base;
+  color: $color-text;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.item__qty {
+  display: block;
+  margin-top: 8px;
+  font-size: $font-sm;
+  color: $color-text-muted;
+}
+
+.item__total {
+  margin-left: $space-2;
+  font-size: $font-md;
+  color: $color-text-strong;
+}
+
+.sk--block {
+  display: block;
+  height: 168px;
+  margin-bottom: $space-5;
+}
+
+.actions {
+  margin-top: $space-5;
+}
+
+.actions__btn {
+  display: block;
+  margin-bottom: $space-3;
+}
+
+.detail__error {
+  display: block;
+  margin-bottom: $space-2;
+  font-size: $font-sm;
+  color: $color-danger;
+}

@@ -1,0 +1,56 @@
+@use '../../theme/tokens.scss' as *;
+
+// 分组块 / 地址卡 / 金额行 / 合计行都在 app.scss 的全局里，本页只留自己的几何
+.checkout {
+  min-height: 100vh;
+  padding: $space-4 $page-gutter 96px;
+  background: $color-bg;
+}
+
+.ways {
+  display: flex;
+  flex-direction: column;
+}
+
+.way {
+  display: flex;
+  align-items: center;
+  height: 96px;
+  margin-bottom: $space-2;
+  padding: 0 $space-3;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+}
+
+.way__label {
+  flex: 1;
+  font-size: $font-base;
+  color: $color-text;
+}
+
+.checkout__error {
+  display: block;
+  margin-bottom: $space-2;
+  font-size: $font-sm;
+  color: $color-danger;
+}
+
+.checkout__hold {
+  display: block;
+  margin-bottom: $space-2;
+  font-size: $font-sm;
+  line-height: $line-sm;
+  color: $color-text-secondary;
+}
+
+.checkout__submit {
+  margin-top: $space-2;
+}
+
+.checkout__terms {
+  display: block;
+  margin-top: $space-2;
+  text-align: center;
+  font-size: $font-xs;
+  color: $color-text-muted;
+}
