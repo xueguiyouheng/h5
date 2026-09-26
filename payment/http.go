@@ -61,13 +61,16 @@ func (m *Module) RegisterPublic(rg *gin.RouterGroup) {
 // prepay 建支付单
 // @Summary 发起支付
 // @Description 为待支付订单建支付单；同订单同渠道存在未过期的 pending 支付单时复用返回
+// @Description X-Client 为 mp_wechat / mp_alipay 时渠道必须与发起端一致，跨端建单直接回 422
 // @Tags payment
 // @Accept json
 // @Produce json
 // @Security CookieAuth
+// @Param X-Client header string false "发起端 h5 / mp_wechat / mp_alipay / app，缺省 h5"
 // @Param body body payment.PrepayRequest true "订单 ID 与支付渠道 alipay / wechat"
 // @Success 200 {object} models.ApiResponse{data=payment.Payment}
 // @Failure 409 {object} models.ApiResponse "订单已支付"
+// @Failure 422 {object} models.ApiResponse "该端不支持所选渠道"
 // @Router /api/payment/prepay [post]
 func (m *Module) prepay(ctx *gin.Context) {
 	memberID, err := m.memberID(ctx)
@@ -77,6 +80,11 @@ func (m *Module) prepay(ctx *gin.Context) {
 	}
 	var req PrepayRequest
 	if !bindJSON(ctx, &req) {
+		return
+	}
+	// 渠道按发起端收口在服务器上判一次：只靠前端裁剪渠道列表，改包就能建出一笔本端唤不起来的单
+	if !providerAllowedForClient(clientOf(ctx), req.Provider) {
+		writeError(ctx, ErrUnprocessable("当前发起端不支持该支付方式，请选择本端可用的渠道"))
 		return
 	}
 	data, err := m.svc.Prepay(memberID, req.OrderID, req.Provider)
@@ -112,7 +120,7 @@ func (m *Module) query(ctx *gin.Context) {
 
 // launch 唤起支付
 // @Summary 唤起支付
-// @Description 按支付单渠道与发起端（X-Client，H5 再看 UA）返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道）/ jsapi（微信小程序、微信内置浏览器）/ qrcode（桌面兜底）
+// @Description 按支付单渠道与发起端（X-Client，H5 再看 UA）返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道浏览器端）/ jsapi（微信小程序、微信内置浏览器）/ qrcode（桌面兜底、模拟渠道小程序端挂起等轮询）
 // @Tags payment
 // @Accept json
 // @Produce json
@@ -122,6 +130,7 @@ func (m *Module) query(ctx *gin.Context) {
 // @Param body body payment.LaunchRequest true "模拟渠道可选的收款结果，真实渠道忽略"
 // @Success 200 {object} models.ApiResponse{data=payment.Launch}
 // @Failure 409 {object} models.ApiResponse "订单已支付"
+// @Failure 422 {object} models.ApiResponse "支付单渠道与发起端不符，或支付单已关闭"
 // @Router /api/payment/launch/{id} [post]
 func (m *Module) launch(ctx *gin.Context) {
 	memberID, err := m.memberID(ctx)

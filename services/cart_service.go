@@ -222,7 +222,7 @@ func (s *CartService) mergeLine(cart *models.Cart, storeID, productID string, qt
 	if err != nil {
 		return err
 	}
-	// 收藏页能翻到别家门店的商品，加购前先让买家切店，否则整车会变成跨店单
+	// 一单一店是硬约束：前端加购前会自动切到商品所属门店，走到这里说明请求绕过了那一步
 	if storeID != "" && product.StoreID != "" && product.StoreID != storeID {
 		return ErrUnprocessable("该商品属于其他门店，请先切换到对应门店")
 	}

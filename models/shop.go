@@ -83,6 +83,8 @@ type ProductCard struct {
 	Collected bool   `json:"collected"`
 	// Stock 让收藏这类「直接加购」的列表能提前标出售罄，不必等接口报 422
 	Stock int `json:"stock"`
+	// StoreID 商品归属门店：收藏这类跨店列表靠它让前端在加购前自动切到对应门店
+	StoreID string `json:"store_id,omitempty"`
 }
 
 // CardView 由商品文档投影出列表卡片
@@ -97,6 +99,7 @@ func (p *Product) CardView() ProductCard {
 		Badge:    p.Badge,
 		OldPrice: p.OldPrice,
 		Stock:    p.Stock,
+		StoreID:  p.StoreID,
 	}
 }
 
@@ -155,22 +158,24 @@ type HomeData struct {
 
 // ProductDetail GET /api/shop/products/{id} 出参
 type ProductDetail struct {
-	ID           string        `json:"id"`
-	Name         string        `json:"name"`
-	Price        string        `json:"price"`
-	Currency     string        `json:"currency"`
-	Unit         string        `json:"unit"`
-	OldPrice     string        `json:"old_price,omitempty"`
-	Badge        string        `json:"badge,omitempty"`
-	HeroImageURL string        `json:"hero_image_url"`
-	ImageURL     string        `json:"image_url"`
-	Images       []string      `json:"images"`
-	Description  string        `json:"description"`
-	Nutrition    Nutrition     `json:"nutrition"`
-	Stock        int           `json:"stock"`
-	CategoryID   string        `json:"category_id"`
-	Collected    bool          `json:"collected"`
-	Related      []ProductCard `json:"related"`
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Price        string    `json:"price"`
+	Currency     string    `json:"currency"`
+	Unit         string    `json:"unit"`
+	OldPrice     string    `json:"old_price,omitempty"`
+	Badge        string    `json:"badge,omitempty"`
+	HeroImageURL string    `json:"hero_image_url"`
+	ImageURL     string    `json:"image_url"`
+	Images       []string  `json:"images"`
+	Description  string    `json:"description"`
+	Nutrition    Nutrition `json:"nutrition"`
+	Stock        int       `json:"stock"`
+	CategoryID   string    `json:"category_id"`
+	Collected    bool      `json:"collected"`
+	// StoreID 商品归属门店：详情可以直接从收藏或分享链接打开，前端靠它在加购前切到对应门店
+	StoreID string        `json:"store_id,omitempty"`
+	Related []ProductCard `json:"related"`
 }
 
 // SearchHotData GET /api/shop/search/hot 出参

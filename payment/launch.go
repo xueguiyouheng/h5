@@ -2,8 +2,9 @@
 // launch.go 唤起契约：把「各渠道怎么把用户送去付款」的差异收敛成前端可枚举的几种形态
 //
 // 前端只按 kind 分支执行，不拼任何渠道参数；换端（H5 / 小程序 / App）只是换一种 kind 的组合。
-// mock 下所有渠道都回 redirect，指向本模块自托管的 /api/payment/mock/launch，
-// 让「跳出去再跳回来」这段骨架与真实渠道一致，前端不必为模拟渠道单开分支。
+// mock 下浏览器端回 redirect，指向本模块自托管的 /api/payment/mock/launch，
+// 让「跳出去再跳回来」这段骨架与真实渠道一致，前端不必为模拟渠道单开分支；
+// 小程序回不了整页跳转，同一笔换回 qrcode 的「挂起等轮询」语义。
 package payment
 
 import (
@@ -41,6 +42,20 @@ const (
 	ClientMPAlipay = "mp_alipay"
 	ClientApp      = "app"
 )
+
+// providerAllowedForClient 该发起端能否用这个渠道收款
+// 小程序的 appid 与 openid 同源于自家平台，在微信小程序里建支付宝单到了唤起步骤必然失败，
+// 与其留下一笔付不掉的 pending 单，不如建单时就拒；h5 与 app 两个渠道都放行
+func providerAllowedForClient(client, provider string) bool {
+	switch client {
+	case ClientMPWechat:
+		return provider == "wechat"
+	case ClientMPAlipay:
+		return provider == "alipay"
+	default:
+		return true
+	}
+}
 
 // JSAPILaunch 微信 JSAPI 唤起参数，Package 固定为 prepay_id=xxx
 type JSAPILaunch struct {
@@ -89,16 +104,28 @@ func IsMobile(ua string) bool {
 
 // mockLaunch 模拟渠道的唤起：跳自托管端点，由它结算后 302 回结果页
 // outcome 只决定假报文里的收款结果，状态机与真实渠道一字不差
+//
+// 小程序没有整页跳转，302 回结果页这条路走不通，因此回 qrcode 形态带上同一个落点：
+// 客户端据此识别「已挂起」，展示模拟确认后调既有的 mock-notify，再轮询 query 收敛
 func mockLaunch(payment *Payment, env LaunchEnv) *Launch {
 	query := url.Values{}
 	query.Set("payment_id", payment.ID)
 	if env.MockOutcome == "failed" {
 		query.Set("outcome", "failed")
 	}
+	link := Channels.Mock.LaunchURL + "?" + query.Encode()
+	if env.Client == ClientMPWechat || env.Client == ClientMPAlipay {
+		return &Launch{
+			Kind:      LaunchQrCode,
+			PaymentID: payment.ID,
+			Provider:  payment.Provider,
+			QRContent: link,
+		}
+	}
 	return &Launch{
 		Kind:      LaunchRedirect,
 		PaymentID: payment.ID,
 		Provider:  payment.Provider,
-		URL:       Channels.Mock.LaunchURL + "?" + query.Encode(),
+		URL:       link,
 	}
 }

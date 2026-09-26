@@ -35,6 +35,9 @@ type WechatParams struct {
 	PlatformCert string // 平台证书，回调验签用
 	Gateway      string // 下单域名
 	NotifyURL    string // 异步回调
+	// MiniAppID 微信小程序 appid：V3 JSAPI 下单的 appid 必须与 payer.openid 同源，
+	// 而公众号 appid 签出来的参数 wx.requestPayment 会直接拒，两个身份不能互相顶替
+	MiniAppID string // 小程序 appid，商户号需同时关联它
 }
 
 // MockParams 模拟渠道专属参数，真实渠道下不参与任何逻辑
@@ -66,6 +69,9 @@ var Channels = struct {
 		PlatformCert: env("WECHAT_PAY_PLATFORM_CERT", "MOCK-WECHATPAY-PLATFORM-CERT"),
 		Gateway:      env("WECHAT_GATEWAY", "https://api.mchpay.mock/v3"),
 		NotifyURL:    env("WECHAT_NOTIFY_URL", "http://localhost:8080/api/payment/notify/wechat"),
+		// 与 services/mp_settings.go 读同一个环境变量：换取 openid 的小程序与收款的小程序
+		// 必须是同一个身份，分成两个键迟早漂移成「openid 来自 A、支付用 B 的 appid」
+		MiniAppID: env("WX_MP_APP_ID", "wxMOCK000000000001"),
 	},
 	Mock: MockParams{
 		// 唤起走同源相对路径，前端代理与正式域名下都不用改

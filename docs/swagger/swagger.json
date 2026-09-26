@@ -2229,7 +2229,7 @@
                         "CookieAuth": []
                     }
                 ],
-                "description": "按支付单渠道与发起端（X-Client，H5 再看 UA）返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道）/ jsapi（微信小程序、微信内置浏览器）/ qrcode（桌面兜底）",
+                "description": "按支付单渠道与发起端（X-Client，H5 再看 UA）返回唤起指令：form（支付宝 wap）/ redirect（微信 H5、模拟渠道浏览器端）/ jsapi（微信小程序、微信内置浏览器）/ qrcode（桌面兜底、模拟渠道小程序端挂起等轮询）",
                 "consumes": [
                     "application/json"
                 ],
@@ -2273,6 +2273,12 @@
                     },
                     "409": {
                         "description": "订单已支付",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "支付单渠道与发起端不符，或支付单已关闭",
                         "schema": {
                             "$ref": "#/definitions/models.ApiResponse"
                         }
@@ -2400,7 +2406,7 @@
                         "CookieAuth": []
                     }
                 ],
-                "description": "为待支付订单建支付单；同订单同渠道存在未过期的 pending 支付单时复用返回",
+                "description": "为待支付订单建支付单；同订单同渠道存在未过期的 pending 支付单时复用返回\nX-Client 为 mp_wechat / mp_alipay 时渠道必须与发起端一致，跨端建单直接回 422",
                 "consumes": [
                     "application/json"
                 ],
@@ -2412,6 +2418,12 @@
                 ],
                 "summary": "发起支付",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "发起端 h5 / mp_wechat / mp_alipay / app，缺省 h5",
+                        "name": "X-Client",
+                        "in": "header"
+                    },
                     {
                         "description": "订单 ID 与支付渠道 alipay / wechat",
                         "name": "body",
@@ -2431,6 +2443,12 @@
                     },
                     "409": {
                         "description": "订单已支付",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApiResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "该端不支持所选渠道",
                         "schema": {
                             "$ref": "#/definitions/models.ApiResponse"
                         }

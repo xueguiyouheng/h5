@@ -421,6 +421,7 @@ func (s *ShopService) Detail(id, memberID string) (*models.ProductDetail, error)
 		Stock:        product.Stock,
 		CategoryID:   product.CategoryID,
 		Collected:    collected[product.ID],
+		StoreID:      product.StoreID,
 		Related:      models.CardViews(related),
 	}, nil
 }

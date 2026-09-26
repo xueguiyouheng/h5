@@ -175,6 +175,9 @@ func (s *Service) Launch(memberID, id string, env LaunchEnv) (*Launch, error) {
 	if !ok {
 		return nil, ErrBadRequest("支付渠道不支持")
 	}
+	if !providerAllowedForClient(env.Client, payment.Provider) {
+		return nil, ErrUnprocessable("该支付单的渠道在当前发起端不可用，请重新选择支付方式")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), payHTTPTimeout)
 	defer cancel()
 	launch, err := prov.Launch(ctx, payment, env)

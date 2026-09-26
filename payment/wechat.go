@@ -101,7 +101,7 @@ func (w *wechatProvider) Launch(ctx context.Context, payment *Payment, env Launc
 		if env.OpenID == "" {
 			return nil, fmt.Errorf("微信内支付需要先授权取得 openid")
 		}
-		return w.launchJSAPI(ctx, payment, env.OpenID)
+		return w.launchJSAPI(ctx, payment, env.OpenID, wechatAppIDOf(env.Client))
 	case IsMobile(env.UserAgent):
 		return w.launchH5(ctx, payment)
 	default:
@@ -157,13 +157,23 @@ func (w *wechatProvider) launchH5(ctx context.Context, payment *Payment) (*Launc
 
 // launchJSAPI 微信内置浏览器下单，拿到 prepay_id 后再签一次名交给 WeixinJSBridge
 // 这是唯一会填 PrepayID 的场景，签名串与请求头签名不同，不能复用 wechatAuthorization
-func (w *wechatProvider) launchJSAPI(ctx context.Context, payment *Payment, openID string) (*Launch, error) {
+// wechatAppIDOf 按发起端选出这笔 JSAPI 用哪个 appid
+// 小程序的 openid 只在小程序 appid 下有效，用公众号 appid 下单会被 wx.requestPayment 直接拒
+func wechatAppIDOf(client string) string {
+	if client == ClientMPWechat {
+		return Channels.Wechat.MiniAppID
+	}
+	return Channels.Wechat.AppID
+}
+
+// launchJSAPI 小程序与微信内置浏览器共用：JSAPI 下单拿 prepay_id，再签前端唤起的第二段
+func (w *wechatProvider) launchJSAPI(ctx context.Context, payment *Payment, openID, appID string) (*Launch, error) {
 	fen, err := amountFen(payment.Amount)
 	if err != nil {
 		return nil, err
 	}
 	body, err := json.Marshal(map[string]interface{}{
-		"appid":        Channels.Wechat.AppID,
+		"appid":        appID,
 		"mchid":        Channels.Wechat.MchID,
 		"description":  fmt.Sprintf("FreshMart %s", payment.OrderNo),
 		"out_trade_no": payment.ID,
@@ -185,7 +195,7 @@ func (w *wechatProvider) launchJSAPI(ctx context.Context, payment *Payment, open
 		return nil, fmt.Errorf("微信未返回预下单号")
 	}
 	payment.PrepayID = res.PrepayID
-	sign, err := wechatJSAPISign(res.PrepayID)
+	sign, err := wechatJSAPISign(res.PrepayID, appID)
 	if err != nil {
 		return nil, err
 	}
@@ -198,19 +208,20 @@ func (w *wechatProvider) launchJSAPI(ctx context.Context, payment *Payment, open
 }
 
 // wechatJSAPISign 前端唤起第二段签名：appId\ntimeStamp\nnonceStr\nprepay_id\n
-func wechatJSAPISign(prepayID string) (*JSAPILaunch, error) {
+// appid 由调用方按发起端传入，签名里的 appid 必须与下单时那一个一致
+func wechatJSAPISign(prepayID, appID string) (*JSAPILaunch, error) {
 	key, err := parseRSAPrivateKey(Channels.Wechat.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	nonce := nonce()
-	sign, err := rsa256Sign(key, fmt.Sprintf("%s\n%s\n%s\n%s\n", Channels.Wechat.AppID, timestamp, nonce, prepayID))
+	sign, err := rsa256Sign(key, fmt.Sprintf("%s\n%s\n%s\n%s\n", appID, timestamp, nonce, prepayID))
 	if err != nil {
 		return nil, err
 	}
 	return &JSAPILaunch{
-		AppID:     Channels.Wechat.AppID,
+		AppID:     appID,
 		TimeStamp: timestamp,
 		NonceStr:  nonce,
 		Package:   "prepay_id=" + prepayID,

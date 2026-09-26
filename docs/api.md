@@ -98,6 +98,7 @@
 - 出参与 `POST /api/login` 完全一致：`data: { "token": "<JWT>", "token_type": "Bearer" }`；**不回 Cookie**，客户端存本地存储后每个请求带 `Authorization` + `X-Client: mp_wechat`
 - 身份链：`code` → openid（`jscode2session`）→ 命中 `members.wx_openid` 直接签发；未命中则用平台解密出的手机号合并已有会员或新建买家账号（占位姓名 `Wechat User`、占位邮箱 `<mobile>@mp.local`、`onboarded: true`）
 - 错误：422 `需要授权手机号才能完成登录`（用户拒绝授权，客户端应拉起授权后重试）、422 `授权手机号不是有效的中国大陆号码`、409 `该手机号已绑定其他微信，请先解绑或用密码登录`、400 凭证无效
+- **本接口不是小程序的唯一登录口**（2026-09-26 口径）：小程序登录页主路径是 `POST /api/login`（手机号/邮箱/用户名 + 密码，与 H5 同一账号），授权登录是次级入口；静默登录拿到 422 时客户端把人交给登录页而不是只给「去授权」
 - 安全口径：入参只有平台一次性凭证，`openid` / `member_id` 一类的字段传进来不参与绑定；`session_key` 不接进进程，`wx_openid` / `wx_unionid` / `alipay_user_id` 全部 `json:"-"`，任何接口都不回吐
 - mock：环境变量 `WX_MP_APP_ID`（缺省 `wxMOCK000000000001`）/ `WX_MP_APP_SECRET` / `WX_MP_GATEWAY`（缺省 `https://api.weixin.qq.com`）；appid 缺失或含 `MOCK` 时只替换「换取身份」这一步的响应报文（`code` → 稳定派生的 openid/手机号），合并与签发逻辑与真实渠道同一份代码；模拟值一律带 `mock-` / `MOCK-` 前缀
 
@@ -140,6 +141,7 @@
   | `sort=sales` | 销量倒序；留空按运营排序 `sort` 升序 | 搜索页 |
   | `page` / `page_size` | 分页，`page_size` 上限 50 | 全部 |
 - `data`：`PageResult<ProductCard>`，只含 `status=on` 的商品。
+- `ProductCard` 带 `store_id`：收藏这类跨门店列表靠它让端上加购前先对齐门店（见 3.7 与 `docs/product-prototype.md §5`）。
 - 说明：搜索页/类目页/猜你喜欢/收藏页共用这一个接口，不再有 `/shop/search`、`/shop/categories/{id}/products`。
 
 ### 3.4 `GET /api/shop/categories/{category_id}` 🆕（`fetchCategory`）
@@ -164,9 +166,10 @@
   ```
 - 现在只有 `cat1-1` 有真文案（`DETAIL_OVERRIDES`），其余商品描述是模板句 —— 接真接口后由后端提供。
 
-**ProductCard（列表卡片）**：`{ "id", "name", "price", "currency", "unit", "image_url", "badge"?, "old_price"?, "collected", "stock" }`
+**ProductCard（列表卡片）**：`{ "id", "name", "price", "currency", "unit", "image_url", "badge"?, "old_price"?, "collected", "stock", "store_id" }`
 - `collected`：当前会员是否已收藏，未登录恒 `false`；列表页心形状态由它驱动。
 - `stock`：列表卡片带库存，供收藏这类「不进详情页直接加购」的列表提前标售罄（详情页 `ProductDetail.stock` 早就有）。
+- `store_id`：商品归属门店（详情页 `ProductDetail.store_id` 同）。端上加购前拿它跟当前门店比对，不一致就先 `PUT /shop/stores/selection` 切过去再下购物车 —— 门店数据独立、一单一店，跨门店的车是拼不出订单的。
 
 ### 3.7 收藏 🆕
 | 方法 | 路径 | 说明 |
@@ -205,7 +208,7 @@
 |------|------|------|
 | GET | `/api/cart` | 全量行项目 + 汇总 |
 | POST | `/api/cart/items` | Body `{ "product_id": "cat1-1", "qty": 1 }`；已存在则累加（等价 `addItem`） |
-| POST | `/api/cart/items/batch` | Body `{ "items": [ { "product_id", "qty" } ] }`，收藏页「一键加入购物车」；单次上限 100 条，任一条下架/库存不足整批不生效（等价 `addItems`） |
+| POST | `/api/cart/items/batch` | Body `{ "items": [ { "product_id", "qty" } ] }`，收藏页「一键加入购物车」；单次上限 100 条，任一条下架/库存不足整批不生效（等价 `addItems`）。**整批只能是一家门店**：端上按 `store_id` 分组、先切店再提交，混店的选择直接拒给提示（服务端 `mergeLine` 的跨店 422 是兜底） |
 | PATCH | `/api/cart/items/{id}` | Body `{ "qty": 3 }`；`qty=0` 视为删除（等价 `setQty`） |
 | DELETE | `/api/cart/items/{id}` | 等价 `removeItem` |
 | PUT | `/api/cart/selection` | Body `{ "all": true }` 或 `{ "item_ids": ["..."] }`（等价 `toggleSelect` / `selectAll`） |
@@ -314,9 +317,9 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/payment/prepay` | Body `{ "order_id", "provider": "alipay"\|"wechat" }` → `Payment`；同单**同渠道**存在未过期 pending 时复用返回，换渠道则重新预下单；订单已支付 409，已结束 422 |
+| POST | `/api/payment/prepay` | Body `{ "order_id", "provider": "alipay"\|"wechat" }` → `Payment`；同单**同渠道**存在未过期 pending 时复用返回，换渠道则重新预下单；订单已支付 409，已结束 422。**渠道必须与发起端匹配**（`X-Client: mp_wechat` 只收 `wechat`、`mp_alipay` 只收 `alipay`，`h5`/`app` 两个都可）：跨端建单 422，前端裁剪渠道列表不再当作可信边界 |
 | GET | `/api/payment/query/{id}` | 支付单查询，前端轮询用；超时的 pending 会先渠道关单再本地置 `closed`，真实渠道下顺带主动查单收敛状态；只认本人（越权 404） |
-| POST | `/api/payment/launch/{id}` | Body `{ "outcome": "success"\|"failed" }`（仅模拟渠道用得着）→ `Launch`；按 `X-Client` 头（`h5`\|`mp_wechat`\|`mp_alipay`\|`app`，缺省/非法值都按 `h5`）选渠道产品，H5 无该头时再看 UA。已支付 409，已关闭 422。**付款人标识（openid）由服务端按会员档案解析，不接受任何客户端传参** |
+| POST | `/api/payment/launch/{id}` | Body `{ "outcome": "success"\|"failed" }`（仅模拟渠道用得着）→ `Launch`；按 `X-Client` 头（`h5`\|`mp_wechat`\|`mp_alipay`\|`app`，缺省/非法值都按 `h5`）选渠道产品，H5 无该头时再看 UA。已支付 409，已关闭 422，**支付单渠道与发起端不符同样 422**（H5 建的支付宝单换到微信小程序里唤起会被拒）。**付款人标识（openid）由服务端按会员档案解析，不接受任何客户端传参** |
 | GET | `/api/payment/mock/launch` | Query `payment_id`、`outcome`；**模拟渠道专用**的自托管唤起落点，形态等同渠道的同步跳转：结算后 302 到支付结果页。免登录、真实渠道下 400 |
 | POST | `/api/payment/mock-notify/{id}` | Body `{ "outcome": "success"\|"failed" }` → `Payment`；**仅 mock 渠道、联调/curl 用**（前端已改走 `launch`），幂等；订单入账结果再看 `GET /api/orders/{id}` |
 | POST | `/api/payment/notify/{provider}` | 渠道公网回调，免登录、CSRF 豁免；应答为 `success`（支付宝）/ `{"code":"SUCCESS"}`（微信），不套统一信封 |
