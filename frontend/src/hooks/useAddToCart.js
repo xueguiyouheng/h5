@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useCartStore } from '../stores/cartStore'
+import { useEnsureStore } from './useEnsureStore'
 
 const DOT_SIZE = 18
 const DURATION = 620
@@ -47,15 +48,18 @@ function flyToCart(source) {
   setTimeout(() => dot.remove(), DURATION + 200)
 }
 
-// useAddToCart 统一加购入口：先出飞点动效，再走接口
+// useAddToCart 统一加购入口：先出飞点动效，门店不对就先切过去，再走接口
 export function useAddToCart() {
   const addItem = useCartStore((s) => s.addItem)
+  const ensureStore = useEnsureStore()
 
   return useCallback(
-    (product, qty = 1, source) => {
+    async (product, qty = 1, source) => {
       flyToCart(source ?? document.activeElement)
-      return addItem(product, qty)
+      const switched = await ensureStore(product.storeId)
+      const data = await addItem(product, qty)
+      return { data, switched }
     },
-    [addItem]
+    [addItem, ensureStore]
   )
 }

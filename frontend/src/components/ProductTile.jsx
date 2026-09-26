@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import iconPlus from '../assets/shop/icon-plus.svg'
+import SoldOutBadge from './SoldOutBadge'
 import { useAddToCart } from '../hooks/useAddToCart'
 
 function ProductTile({ product }) {
   const navigate = useNavigate()
   const addToCart = useAddToCart()
+  const soldOut = (product.stock ?? 0) <= 0
   return (
     <div
       className="relative aspect-[159/199] bg-[#f9f8f6] rounded-[18px] overflow-hidden cursor-pointer"
@@ -23,17 +25,21 @@ function ProductTile({ product }) {
           <div className="text-sm leading-5 text-black">{product.name}</div>
           <div className="text-[15px] font-medium leading-5 text-black">{product.price}</div>
         </div>
-        <button
-          className="shrink-0 flex items-center justify-center w-[39px] h-[39px] rounded-[20px] bg-[#00b861] border-none cursor-pointer hover:brightness-110"
-          type="button"
-          aria-label={`Add ${product.name} to cart`}
-          onClick={(e) => {
-            e.stopPropagation()
-            addToCart(product, 1, e.currentTarget)
-          }}
-        >
-          <img src={iconPlus} alt="" width="15" height="15" />
-        </button>
+        {soldOut ? (
+          <SoldOutBadge className="shrink-0 w-[46px] h-[39px] rounded-[20px] bg-[#ff7465]/10 text-[10px] font-medium" />
+        ) : (
+          <button
+            className="shrink-0 flex items-center justify-center w-[39px] h-[39px] rounded-[20px] bg-[#00b861] border-none cursor-pointer hover:brightness-110"
+            type="button"
+            aria-label={`Add ${product.name} to cart`}
+            onClick={(e) => {
+              e.stopPropagation()
+              addToCart(product, 1, e.currentTarget)
+            }}
+          >
+            <img src={iconPlus} alt="" width="15" height="15" />
+          </button>
+        )}
       </div>
     </div>
   )

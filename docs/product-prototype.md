@@ -102,8 +102,8 @@
 | `/product/:id` 详情 | `bTzUj6MJiG` | 多图 + 营养条 + 描述 + 相关推荐；底部吸底栏带磨砂（`bg-white/70 backdrop-blur-[14px]`） | `GET /api/shop/products/{id}`（含 `related`、`collected`）；心形 `POST /api/shop/favorites`；加购 `POST /api/cart/items` |
 | `/cart` 购物车 | `yEMojet72x` | 行 = 勾选框 + 图 + 名称/规格 + 数量步进器；底部全选 + 合计 + 去结算 | `GET /api/cart`（行项目带 `available`/`max_qty`）、`PUT /api/cart/selection`、`PATCH/DELETE /api/cart/items/{id}` |
 | `/checkout` 结算 | `pYRQwhhHjF` | 地址卡 + 商品行 + 券选择 + 金额明细（小计/优惠/运费/应付）+ 备注 + 支付方式（仅支付宝 / 微信） | `POST /api/cart/checkout-preview`（带 `voucher_rejected_reason`）→ `POST /api/orders` → 支付模块 |
-| — 支付弹层 | `SKh1XGuRfL` / `q721g3bZFw` | 订单成功/失败两态走同一个 `ResultSheet`；收银台在 `frontend/src/payment/components/PaymentSheet.jsx` | `POST /api/payment/prepay` → `POST /api/payment/launch/{id}`（整页唤起）→ 轮询 `GET /api/payment/query/{id}` |
-| `/payment/result` | 唤起回跳落地页 | 独立路由，浏览器整页跳回来时按 `?payment_id=` 恢复并继续轮询，不依赖前端内存状态 | 同上 |
+| — 支付弹层 | `SKh1XGuRfL` / `q721g3bZFw` | 订单成功/失败两态走同一个 `ResultSheet`（传 `onClose` 即可点遮罩或「稍后再看」关掉）；收银台在 `frontend/src/payment/components/PaymentSheet.jsx` | `POST /api/payment/prepay` → `POST /api/payment/launch/{id}`（整页唤起）→ 轮询 `GET /api/payment/query/{id}` |
+| `/payment/result` | 唤起回跳落地页 | 独立路由，浏览器整页跳回来时按 `?payment_id=` 恢复并继续轮询，不依赖前端内存状态；**只在终态弹**（pending 期间不弹），面板弹过一次即按支付单记账（`sessionStorage`），从订单页返回不再重弹，出路挪到页面内的按钮 | 同上 |
 
 ### 3.3 订单与履约
 
@@ -118,7 +118,7 @@
 |------|-----------|------|------|
 | `/profile` | `Sz-QR8qFqD` | 头部资料卡 + 分组入口行，行右侧显示真实数值（订单数 / 收藏数 / 券数 / 默认地址 / 未读数 / 语言 / 平均分）；商家多一行「运营中台」；底部退出登录 | 聚合各 store；`GET /api/auth/me` |
 | `/my-profile` | `sro_FGWgbC` | 5 张资料卡 + 铅笔行内编辑；手机号按大陆 3-4-4 分组显示（`138 0013 8000`），不合规的存量旧号原样显示不伪装；密码强度与资料完整度 | `PUT /api/profile`、`GET /api/profile/completeness` |
-| `/favorites` | `HRktBYJjx-`（MCP 未读到，几何待复核） | **购物车行式**：勾选框 + 70×70 图 + 名称/价 + 行尾 `×`；售罄行带红色「库存不足」标记且**不可勾选**；下方「全选 (N) … 合计 $」；底栏只有一个「一键加入购物车 (N)」 | `GET /api/shop/products?favorite=true`（跨门店，收藏跟人走）、`DELETE /api/shop/favorites`、`POST /api/cart/items/batch` |
+| `/favorites` | `HRktBYJjx-`（MCP 未读到，几何待复核） | **购物车行式**：勾选框 + 70×70 图 + 名称/价 + 行尾 `×`；售罄行带红色「库存不足」标记且**不可勾选**；**别家门店的行带门店名标签**；下方「全选 (N) … 合计 $」；底栏只有一个「一键加入购物车 (N)」，**加购成功后这批同时移出收藏**（心愿已达成，列表不留已购）；勾选混了两家门店时直接拒绝并说明「一次只能加入同一家门店的车」 | `GET /api/shop/products?favorite=true`（跨门店，收藏跟人走）、`PUT /api/shop/stores/selection`（自动切店）→ `POST /api/cart/items/batch` → `DELETE /api/shop/favorites`、行尾 `×` 单条 `DELETE` |
 | `/vouchers` | `fVK-efyqxy` | 兑换码输入 + Apply；券卡 315×99 带左右圆缺口与竖虚线；可用/差额实时按车金额算 | `GET /api/vouchers`、`/vouchers/available?amount=`、`POST /api/vouchers/redeem` |
 | `/addresses` | `iti-MSKzdJ` | 卡片 319×83，名称 + 两行地址；`+ Add`；编辑 / 删除 / 设为默认 | `GET/POST/PATCH/DELETE /api/addresses`、`PUT /{id}/default` |
 | `/notifications` | `tg5lKXSujV` | 42px 圆底徽标 + 两行文字 + 时间列 + 未读点；页头「全部已读」 | `GET /api/notifications`、`/unread-count`、`POST /read`、`/read-all`；下单后服务端 `PushOrderNotice` |
@@ -156,7 +156,7 @@
 |------|------|-------------|
 | ① | 首页点门店名 → 附近门店面板 → 选店 | `PUT /shop/stores/selection`；`status=closed` → 422；坐标缓存到会员，回 `out_of_range` |
 | ② | 所有列表共用 `GET /shop/products`，只换过滤字段 | `publishedFilter(storeID)` 只回本店已上架商品 |
-| ③ | 加购 / 批量加购 | `mergeLine`：上架校验 + 跨门店拦截 + **`existing+qty > stock` 累计库存校验**，任一不合规**整批不生效** |
+| ③ | 加购 / 批量加购 | 端上先按 `store_id` 对齐门店（不一致自动切店）再请求；`mergeLine`：上架校验 + 跨门店拦截（兜底）+ **`existing+qty > stock` 累计库存校验**，任一不合规**整批不生效** |
 | ④ | 勾选与取消 | `PUT /cart/selection` 只作用当前门店的行 |
 | ⑤ | 试算 | `checkout-preview` 返回地址 / ETA / 券拒用原因；金额全部服务端算 |
 | ⑥ | `POST /orders` | 快照 `store_id`+`store_name`+收货人；条件更新 `stock >= qty` 扣库存 + 累计销量；占用券；从车上摘掉已结算行 |
@@ -197,13 +197,14 @@
 | 规则 | 事实 | 出处 |
 |------|------|------|
 | 一单一店 | `store_id` 下沉到 `products`/`categories`/`carousels`/`orders`/`carts`；购物车按行归属；**切店不丢车**（别家店的行只是隐藏） | `services/cart_service.go`、`models/trade.go` |
+| 加购必带门店 | 商品列表/详情的出参带 `store_id`，端上加购前先比对当前门店：不一致就**自动切到商品那家店再下购物车**（门店数据独立，不能跨门店下单），服务端 `mergeLine` 的跨店 422 只作为绕过端上的兜底 | `frontend/src/hooks/useEnsureStore.js`、`miniprogram/src/utils/shop.js` |
 | 门店地址 ≠ 收货地址 | `Store.address` 是卖家发货店址（注册 `store_address` 采集、中台「门店资料」维护）；`/api/addresses` 只服务买家收货与结算，**两者互不派生** | `services/member_service.go`、`docs/api.md §3.8` |
 | 中台作用域 | 只认 `AdminShopScope` 注入的 `storeID`，不读请求参数；无门店账号 403 | `controllers/admin_scope.go` |
 | 账号类型 | `members.account_type = buyer / merchant`，注册时落库并随 `/api/auth/me`、`PUT /api/profile` 回显；`merchant` 恒有 `is_admin=true`。存量账号（种子、SSO 建档）文档里没有该字段，出参由 `markMerchant` 按「名下有无门店」补全 | `models/account.go`、`controllers/context.go markMerchant` |
 | 手机号 | 中国大陆 11 位 `^1[3-9]\d{9}$`（2026-09-22 由马来西亚 `^60\d{9,11}$` 换掉，属破坏性变更：存量旧号登录不受影响，再保存时会被拦）。**校验、查重、入库统一走 `NormalizeMobile`**，`+86`/空格/连字符先归一成纯数字，避免同号双账号；`mobile` 唯一索引是小程序账号合并的主键 | `services/member_service.go` |
 | 登录凭据 | 邮箱 / 用户名 / **手机号** 三者任一 + 密码；`FindByAccount` 的 `$or` 一次查完，先 MySQL SSO 后台账号后 Mongo 会员，优先级不变 | `services/auth_service.go Login`、`services/member_service.go FindByAccount` |
 | 商品列表唯一入口 | 搜索 / 类目 / 首页版块 / 收藏全部是 `GET /api/shop/products` + 过滤字段（`q`/`category_id`/`subcategory`/`section`/`favorite`/`sort`），因此分页、排序、`collected` 标记行为天然一致 | `services/shop_service.go` `ListProducts` |
-| 收藏跨门店 | `favorite=true` 时**不限门店**（收藏跟人走），跨店加购仍由购物车侧拦下 | 同上 |
+| 收藏跨门店 | `favorite=true` 时**不限门店**（收藏跟人走），所以列表里会混进别家门店的商品：行上打门店标签，勾选同一家店的一键加购会自动切到那家店，**混选两家店直接拒绝并说明原因**（不做静默拆单） | 同上、`frontend/src/pages/Favorites.jsx`、`miniprogram/src/pages/favorites/index.jsx` |
 | 库存 | 加购累计校验；下单条件扣减；取消/关单回补；单行上限 20、批量上限 100 | `mergeLine` / `deductStock` / `restoreStock` |
 | 金额 | 服务端计算，一律字符串十进制 + `currency`，前端只做展示与拼接 | `models/*.go` 顶部注释、`ComputeTotals` |
 | 运费 | 选中金额 ≥ **20.00** 免运费，否则固定 **5.00** | `services/cart_service.go` 常量 |
@@ -215,6 +216,7 @@
 | 订单快照 | 建单时快照门店名、地址、收货人与手机，之后改门店资料或删地址都不影响历史订单 | `services/order_service.go Create()` |
 | 客服在线 | 09:00–21:00 **GMT+8**，判定在服务端以保证多端一致 | `services/help_service.go` |
 | 会话与安全 | HttpOnly Cookie 的 JWT + `X-CSRF-Token`（取自 `sso_csrf` cookie）；`/api` 分组限流 **300 次/分钟/IP**；`/uploads` 与公网回调不挂 protected | `routers/router.go` |
+| 报错只占空屏 | 任何一块内容拉取失败时：**屏上已有内容就留着继续用，不在内容上叠红条**（网络抖动、后端重启这类会自愈，用户无感）；只有这一块什么都没有时才给「加载失败，请重试 + 重试」。例外是结算试算与支付结果——金额和支付结论不能凭空显示，失败必须挡住提交 | `frontend/src/pages/Shop.jsx` 等 10 处、`miniprogram/src/pages/*/index.jsx` 各屏（换端各自实现） |
 
 ---
 
@@ -349,13 +351,13 @@ stores ──┬─ categories(store_id) ── subcategories(category_id)
 | **`models/*.go` 出参结构** | 前端换端只换渲染层，JSON 契约不变 |
 | **业务规则文档（§5）** | 直接作为小程序 / App 的需求基线 |
 | **设计稿与已还原几何** | 375×812 屏，小程序 rpx 与 App dp 可按 2x / 3x 直接换算 |
-| **图片资产与配色 token** | `#00b861` 主按钮绿 / `#f9f8f6` 卡底 / `#f4f5f7` 分隔线等一套已在 `frontend/src/assets` 与 Tailwind 里固化，可整包搬 |
+| **图片资产与配色 token** | `#00b861` 主按钮绿 / `#f9f8f6` 卡底 / `#f4f5f7` 分隔线等一套已在 `frontend/src/assets` 与 Tailwind 里固化。**换端工程按「移植一份」处理**：各端独立部署、不做跨工程引用，已落成 `miniprogram/src/theme/tokens.scss`（rpx = H5 值 ×2） |
 
 ### 12.2 换端必须新增
 
 **小程序（微信 / 支付宝）**
 
-1. 登录：`wx.login` → `code2session` 换 openid + unionid，**与现在的邮箱密码账号体系做绑定/合并**（`members` 的 `wx_openid` / `alipay_user_id` / `wx_unionid` 三列与三条 unique+sparse 索引已全部落库，P2b 于 2026-09-23 完成：`POST /api/miniprogram/wechat/login` + `POST /api/miniprogram/bind`，合并策略按「只认平台授权手机号」，详见 [`miniprogram-plan.md`](./miniprogram-plan.md) §3.2/§6）。
+1. 登录：`wx.login` → `code2session` 换 openid + unionid，**与现在的邮箱密码账号体系做绑定/合并**（`members` 的 `wx_openid` / `alipay_user_id` / `wx_unionid` 三列与三条 unique+sparse 索引已全部落库，P2b 于 2026-09-23 完成：`POST /api/miniprogram/wechat/login` + `POST /api/miniprogram/bind`，合并策略按「只认平台授权手机号」，详见 [`miniprogram-plan.md`](./miniprogram-plan.md) §3.2/§6）。**2026-09-26 修正口径**：小程序登录页的主路径是**账号密码**（手机号/邮箱/用户名任一，与 H5 同一账号），平台授权降为次级入口——否则在拿不到授权码的环境里（游客 appid）整端被拦死；小程序内也有自己的注册页，字段与校验照 H5 一套（含商家门店字段）。
 2. JSAPI 支付：`LaunchEnv.OpenID` 必须有值 → 后端 `wechat.go` 的 JSAPI 分支已按 `X-Client: mp_wechat` 强制命中，`openid` 由服务端查会员档案注入（`payment.PayerFunc`），缺的是授权登录写入档案的那条链路（P2b）。
 3. 收货地址：小程序 `wx.chooseAddress` 可以覆盖 `/api/addresses`，无需新增接口。
 4. 定位：`wx.getLocation` 替换 `utils/locate.js`（后者返回 `null` 的兜底语义保持不变即可对接同一套 `/shop/stores/nearby`）。

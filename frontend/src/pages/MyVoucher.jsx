@@ -109,7 +109,7 @@ function MyVoucher() {
       </div>
 
       <div className="mt-10 px-[30px] space-y-7">
-        {isError && <QueryError error={error} onRetry={refetch} />}
+        {isError && vouchers.length === 0 && <QueryError error={error} onRetry={refetch} />}
         {isPending &&
           Array.from({ length: 3 }, (_, i) => <VoucherCardSkeleton key={i} />)}
         {vouchers.map((voucher) => (

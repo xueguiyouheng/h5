@@ -127,7 +127,7 @@ function StoreSheet({ onClose }) {
           {loading && list.length === 0 && (
             <SkeletonListRows count={2} padding="py-[12px] pl-0 pr-0" avatar="h-[38px] w-[38px] rounded-[12px]" line="w-full" />
           )}
-          {!loading && error && <QueryError className="py-[12px]" error={{ message: error }} onRetry={load} />}
+          {!loading && error && list.length === 0 && <QueryError className="py-[12px]" error={{ message: error }} onRetry={load} />}
           {!loading && !error && list.length === 0 && (
             <p className="m-0 py-[12px] text-sm leading-5 text-[#b6bbb9]">附近还没有可选择的门店</p>
           )}

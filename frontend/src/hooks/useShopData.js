@@ -156,7 +156,9 @@ export function useFavoriteCount() {
 export function useVouchers() {
   return useQuery({
     queryKey: ['vouchers'],
-    queryFn: fetchVouchers,
+    // 不能直接传 fetchVouchers：react-query 会把查询上下文当第一个入参塞进来，
+    // 那正是本函数要收的购物车金额，上下文会被拼成 ?amount[signal]=... 这种脏参数
+    queryFn: () => fetchVouchers(),
   })
 }
 

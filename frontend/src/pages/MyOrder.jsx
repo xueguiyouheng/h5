@@ -123,7 +123,7 @@ function MyOrder() {
       </div>
 
       <div className="mt-[38px] px-[27px]">
-        {isError && <QueryError error={error} onRetry={refetch} />}
+        {isError && orders.length === 0 && <QueryError error={error} onRetry={refetch} />}
         {isPending && (
           <div>
             {Array.from({ length: 3 }, (_, i) => (

@@ -72,7 +72,8 @@ function Search() {
         )}
       </div>
 
-      {list.isError && (
+      {/* 结果还在屏上就不报红：后台刷新失败留着旧数据，不做整页报错 */}
+      {list.isError && !list.data?.length && (
         <QueryError error={list.error} onRetry={list.refetch} className="mt-6 mx-[30px]" />
       )}
       {list.isPending &&

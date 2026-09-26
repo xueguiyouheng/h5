@@ -4,6 +4,7 @@ import iconPlus from '../assets/shop/icon-plus.svg'
 import BackIcon from '../components/BackIcon'
 import QueryError from '../components/QueryError'
 import CartButton from '../components/CartButton'
+import SoldOutBadge from '../components/SoldOutBadge'
 import { useProductDetail, useFavoriteToggle } from '../hooks/useShopData'
 import { useGoBack } from '../hooks/useGoBack'
 import { useAddToCart } from '../hooks/useAddToCart'
@@ -58,6 +59,22 @@ function Detail() {
   const addToCart = useAddToCart()
   const favorite = useFavoriteToggle()
 
+  // 无货时加购必然被服务端按「现有数量 + 本次 > 库存」拒掉，按钮不给点
+  const soldOut = (product?.stock ?? 0) <= 0
+
+  // 从收藏或分享链接进来可能落在别家门店的商品上，加购会自动切店，切了要说清楚为什么门店变了
+  // 记下当时的商品 id：详情页换商品不重挂载，别处的提示不能跟着带过来
+  const [switched, setSwitched] = useState(null)
+
+  const add = async (item, count, source) => {
+    try {
+      const result = await addToCart(item, count, source)
+      setSwitched(result?.switched ? { productId: id, name: result.switched.storeName } : null)
+    } catch {
+      // 失败原因（库存/下架）不在这里重复报，与改动前的表现一致
+    }
+  }
+
   const toggleFavorite = () => {
     if (!product || favorite.isPending) return
     favorite.mutate(product.id)
@@ -70,7 +87,7 @@ function Detail() {
 
   return (
     <div className="mx-auto w-full max-w-[480px] min-h-screen bg-white pb-[119px] overflow-x-clip">
-      {isError && <QueryError error={error} onRetry={refetch} className="mt-6 mx-[30px]" />}
+      {isError && !product && <QueryError error={error} onRetry={refetch} className="mt-6 mx-[30px]" />}
       {isPending && <DetailSkeleton />}
 
       {product && (
@@ -138,6 +155,12 @@ function Detail() {
               <div className="text-2xl font-medium leading-6 text-black">{product.price}</div>
             </div>
 
+            {switched?.productId === id && (
+              <p className="m-0 mt-[18px] text-sm leading-5 text-[#00b861]" role="status">
+                {`已切换到「${switched.name}」，购物车与下单都按这家门店`}
+              </p>
+            )}
+
             <h2 className="mt-[34px] text-base font-medium leading-5 text-black">About the product</h2>
             <p className="mt-[15px] text-sm leading-[24px] text-[#b6bbb9]">{product.description}</p>
 
@@ -161,17 +184,21 @@ function Detail() {
                         <div className="text-sm leading-5 text-black">{p.name}</div>
                         <div className="text-[15px] font-medium leading-5 text-black">{p.price}</div>
                       </div>
-                      <button
-                        className="shrink-0 flex items-center justify-center w-[39px] h-[39px] rounded-[20px] bg-[#00b861] border-none cursor-pointer hover:brightness-110"
-                        type="button"
-                        aria-label={`Add ${p.name} to cart`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          addToCart({ id: p.id, name: p.name, price: `${p.price} / kg`, image: p.image }, 1, e.currentTarget)
-                        }}
-                      >
-                        <img src={iconPlus} alt="" width="15" height="15" />
-                      </button>
+                      {(p.stock ?? 0) <= 0 ? (
+                        <SoldOutBadge className="shrink-0 w-[46px] h-[39px] rounded-[20px] bg-[#ff7465]/10 text-[10px] font-medium" />
+                      ) : (
+                        <button
+                          className="shrink-0 flex items-center justify-center w-[39px] h-[39px] rounded-[20px] bg-[#00b861] border-none cursor-pointer hover:brightness-110"
+                          type="button"
+                          aria-label={`Add ${p.name} to cart`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            add({ id: p.id, name: p.name, price: `${p.price} / kg`, image: p.image, storeId: p.storeId }, 1, e.currentTarget)
+                          }}
+                        >
+                          <img src={iconPlus} alt="" width="15" height="15" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -193,11 +220,14 @@ function Detail() {
               <CartButton className="w-full h-full" />
             </span>
             <button
-              className="flex-1 h-[51px] rounded-full bg-[#00b861] border-none text-base font-bold text-white cursor-pointer hover:brightness-110 active:brightness-90"
+              className={`flex-1 h-[51px] rounded-full border-none text-base font-bold text-white ${
+                soldOut ? 'bg-[#c9cfc9] cursor-not-allowed' : 'bg-[#00b861] cursor-pointer hover:brightness-110 active:brightness-90'
+              }`}
               type="button"
-              onClick={(e) => addToCart({ id: product.id, name: product.name, price: `${product.price} / kg`, image: product.image }, qty, e.currentTarget)}
+              disabled={soldOut}
+              onClick={(e) => add({ id: product.id, name: product.name, price: `${product.price} / kg`, image: product.image, storeId: product.storeId }, qty, e.currentTarget)}
             >
-              Add to Cart
+              {soldOut ? '已售罄' : 'Add to Cart'}
             </button>
           </div>
         </>

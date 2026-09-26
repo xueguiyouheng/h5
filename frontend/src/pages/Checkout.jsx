@@ -132,9 +132,10 @@ function Checkout() {
   }
 
   // 下单结果面板：成功后购物车已被服务端清空，这里保留订单号供「Track Order」定位
-  const paid = result === 'success'
+  // 'closed' 是成功面板被关掉后的状态，仍算已支付，不能掉回「待支付」的续付提示
+  const paid = result === 'success' || result === 'closed'
   const sheet =
-    paid ? (
+    result === 'success' ? (
       <ResultSheet
         tone="success"
         title="Thank you for your order"
@@ -143,6 +144,8 @@ function Checkout() {
         onPrimary={() => navigate('/orders')}
         secondaryLabel="Back to Home"
         onSecondary={() => navigate('/shop')}
+        onClose={() => setResult('closed')}
+        closeLabel="稍后再看"
       />
     ) : result === 'canceled' ? (
       <ResultSheet
@@ -325,10 +328,10 @@ function Checkout() {
         <button
           className="w-full h-[51px] rounded-full bg-[#00b861] border-none text-base font-bold text-white cursor-pointer hover:brightness-110 active:brightness-90 disabled:bg-[#e4e4e4] disabled:cursor-not-allowed"
           type="button"
-          disabled={!canPay}
+          disabled={!canPay || paid}
           onClick={submit}
         >
-          {placing ? '提交中...' : order ? '继续支付' : 'Continue'}
+          {placing ? '提交中...' : paid ? '支付已完成' : order ? '继续支付' : 'Continue'}
         </button>
       </div>
 

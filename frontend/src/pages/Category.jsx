@@ -80,7 +80,8 @@ function Category() {
           ))}
       </div>
 
-      {queryError && <QueryError error={queryError} onRetry={retry} className="mt-4 mx-[21px]" />}
+      {/* 屏上还有商品就不报红，后台刷新失败留着旧数据 */}
+      {queryError && !products && <QueryError error={queryError} onRetry={retry} className="mt-4 mx-[21px]" />}
       {!products && !queryError && (
         <div className="mt-5 px-[21px]">
           <SkeletonTiles />

@@ -12,8 +12,11 @@ const EXIT_MS = 320
 /**
  * 下单结果面板（SKh1XGuRfL / q721g3bZFw）：两种结果同一套几何，只是图标与文案不同。
  * 位移走内联 transform，Tailwind 的 translate-y-* 在同类规则下会被顶掉。
+ * 传了 onClose 就可关（点遮罩或 closeLabel 按钮），不传表示必须选一个出路。
  */
-function ResultSheet({ tone, title, description, primaryLabel, onPrimary, secondaryLabel, onSecondary, onClose }) {
+function ResultSheet({
+  tone, title, description, primaryLabel, onPrimary, secondaryLabel, onSecondary, onClose, closeLabel,
+}) {
   const [shown, setShown] = useState(false)
   const [closing, setClosing] = useState(false)
   const { icon, alt } = TONES[tone] ?? TONES.success
@@ -77,6 +80,15 @@ function ResultSheet({ tone, title, description, primaryLabel, onPrimary, second
             onClick={onSecondary}
           >
             {secondaryLabel}
+          </button>
+        )}
+        {onClose && closeLabel && (
+          <button
+            className="mx-auto mt-[24px] block w-fit border-none bg-none p-0 cursor-pointer font-[inherit] text-sm leading-5 text-[#b6bbb9]"
+            type="button"
+            onClick={dismiss}
+          >
+            {closeLabel}
           </button>
         )}
       </div>

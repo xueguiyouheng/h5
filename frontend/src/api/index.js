@@ -80,6 +80,7 @@ function toProductCard(product) {
     oldPrice: product.old_price ? `${CURRENCY_SYMBOL[product.currency] ?? '$'}${product.old_price}` : null,
     collected: product.collected === true,
     stock: product.stock ?? 0,
+    storeId: product.store_id ?? '',
   }
 }
 
@@ -241,6 +242,7 @@ export function fetchProductDetail(id) {
     stock: data.stock,
     categoryId: data.category_id,
     collected: data.collected === true,
+    storeId: data.store_id ?? '',
     related: (data.related ?? []).map(toProductCard).map((card) => ({ ...card, price: card.price.split(' / ')[0] })),
   }))
 }

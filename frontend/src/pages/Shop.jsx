@@ -6,6 +6,7 @@ import SearchIcon from '../components/SearchIcon'
 import StoreSwitcher from '../components/StoreSwitcher'
 import ProductTile from '../components/ProductTile'
 import CategoryChip from '../components/CategoryChip'
+import SoldOutBadge from '../components/SoldOutBadge'
 import { Skeleton, SkeletonTiles, SkeletonScrollCards } from '../components/Skeleton'
 import QueryError from '../components/QueryError'
 import {
@@ -31,6 +32,7 @@ const FALLBACK_SLIDE = {
 function ProductCard({ product }) {
   const navigate = useNavigate()
   const addToCart = useAddToCart()
+  const soldOut = (product.stock ?? 0) <= 0
   return (
     <div
       className="relative shrink-0 basis-[137px] h-[172px] bg-[#f9f8f6] rounded-[15px] cursor-pointer"
@@ -45,17 +47,22 @@ function ProductCard({ product }) {
         <div className="text-xs leading-5 text-black">{product.name}</div>
         {product.price && <div className="mt-px text-[13px] font-medium leading-5 text-black">{product.price}</div>}
       </div>
-      <button
-        className="absolute left-[90px] top-[123px] flex items-center justify-center w-[34px] h-[34px] rounded-[17px] bg-[#00b861] border-none cursor-pointer hover:brightness-110"
-        type="button"
-        aria-label={`Add ${product.name} to cart`}
-        onClick={(e) => {
-          e.stopPropagation()
-          addToCart(product, 1, e.currentTarget)
-        }}
-      >
-        <img src={iconPlus} alt="" width="13" height="13" />
-      </button>
+      {/* 售罄只换掉加购按钮（点了必然 422 且无法生效），卡片其余部分与设计稿一致 */}
+      {soldOut ? (
+        <SoldOutBadge className="absolute left-[82px] top-[129px] w-[50px] h-[22px] rounded-[11px] bg-[#ff7465]/10 text-[10px] font-medium" />
+      ) : (
+        <button
+          className="absolute left-[90px] top-[123px] flex items-center justify-center w-[34px] h-[34px] rounded-[17px] bg-[#00b861] border-none cursor-pointer hover:brightness-110"
+          type="button"
+          aria-label={`Add ${product.name} to cart`}
+          onClick={(e) => {
+            e.stopPropagation()
+            addToCart(product, 1, e.currentTarget)
+          }}
+        >
+          <img src={iconPlus} alt="" width="13" height="13" />
+        </button>
+      )}
     </div>
   )
 }
@@ -155,7 +162,8 @@ function CategoryStrip() {
     )
   }
 
-  if (isError) return <QueryError error={error} onRetry={refetch} className="mx-[30px] mt-[30px]" />
+  // 屏上还有内容就不报红：后台刷新失败（网络抖动、后端重启）留着旧数据继续用，只有什么都没有时才要用户重试
+  if (isError && !categories?.length) return <QueryError error={error} onRetry={refetch} className="mx-[30px] mt-[30px]" />
   if (!categories?.length) return null
 
   // 一格 63px，5 格正好占满 315 内容宽；类目多于 5 个时整条左右滑
@@ -179,7 +187,7 @@ function ProductSection({ title, section }) {
           See all
         </button>
       </div>
-      {isError && <QueryError error={error} onRetry={refetch} className="mx-[30px] mt-3" />}
+      {isError && !products?.length && <QueryError error={error} onRetry={refetch} className="mx-[30px] mt-3" />}
       {isPending && (
         <div className="mt-[19px] px-[30px]">
           <SkeletonScrollCards />
@@ -212,7 +220,7 @@ function RecommendSection() {
   return (
     <section className="mt-[26px]">
       <h2 className="m-0 px-[30px] text-base font-medium text-black">为你推荐</h2>
-      {isError && <QueryError error={error} onRetry={refetch} className="mx-[30px] mt-3" />}
+      {isError && !list.length && <QueryError error={error} onRetry={refetch} className="mx-[30px] mt-3" />}
       {isPending && (
         <div className="mt-[19px] px-[30px]">
           <SkeletonTiles />

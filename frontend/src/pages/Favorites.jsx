@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
 import CheckBox from '../components/CheckBox'
@@ -6,7 +6,9 @@ import SearchIcon from '../components/SearchIcon'
 import { Skeleton } from '../components/Skeleton'
 import QueryError from '../components/QueryError'
 import { useInfiniteProducts, useRemoveFavorites } from '../hooks/useShopData'
+import { useEnsureStore } from '../hooks/useEnsureStore'
 import { useCartStore, parsePrice } from '../stores/cartStore'
+import { currentStore, useShopsStore } from '../stores/shopsStore'
 
 function ClearIcon() {
   return (
@@ -25,6 +27,15 @@ function SoldOutTag() {
   )
 }
 
+// 收藏跟着会员走、不跟门店，所以这里会混进别家门店的商品；标出来才知道一键加购为什么要切店
+function StoreTag({ name }) {
+  return (
+    <span className="shrink-0 max-w-[92px] truncate rounded-full bg-[#00b861]/10 px-[6px] text-[8px] leading-[14px] text-[#00b861]">
+      {name}
+    </span>
+  )
+}
+
 function FavRowSkeleton() {
   return (
     <div className="flex items-center gap-3 h-[90px]" aria-hidden="true">
@@ -39,7 +50,7 @@ function FavRowSkeleton() {
   )
 }
 
-function FavRow({ product, checked, removing, disabled, soldOut, onToggle, onRemove, onOpen }) {
+function FavRow({ product, checked, removing, disabled, soldOut, storeName, onToggle, onRemove, onOpen }) {
   return (
     <div
       className={
@@ -74,6 +85,7 @@ function FavRow({ product, checked, removing, disabled, soldOut, onToggle, onRem
         <span className="flex items-center gap-[6px]">
           <span className="min-w-0 text-sm font-medium leading-5 text-black truncate">{product.name}</span>
           {soldOut && <SoldOutTag />}
+          {storeName ? <StoreTag name={storeName} /> : null}
         </span>
         <span className="mt-[7px] block text-[15px] font-medium leading-5 text-black">
           {product.price}
@@ -101,6 +113,15 @@ function Favorites() {
   const [removingId, setRemovingId] = useState(null)
   const addItems = useCartStore((s) => s.addItems)
   const removeFavorites = useRemoveFavorites()
+  const ensureStore = useEnsureStore()
+  const stores = useShopsStore((s) => s.list)
+  const loadStores = useShopsStore((s) => s.load)
+  const currentId = currentStore(stores)?.id ?? ''
+
+  // 别家门店的商品要在行上标出来，否则点了「一键加入购物车」会莫名其妙换掉顶部的门店
+  useEffect(() => {
+    loadStores().catch(() => {})
+  }, [loadStores])
 
   // 收藏只是商品列表接口的一个过滤字段，搜索则是再叠一个 q
   const keyword = query.trim()
@@ -134,12 +155,30 @@ function Favorites() {
 
   const toggleAll = () => setSelected(allSelected ? new Set() : new Set(buyable.map((p) => p.id)))
 
+  // 加购即视为心愿已达成，这批同时从收藏里移除；移除失败只提示，不能把已成功的加购报成失败
   const addSelected = async () => {
+    const picked = buyable.filter((p) => selected.has(p.id))
+    const ids = picked.map((p) => p.id)
+    // 购物车一单一店：分属几家店的选择要分开下，服务端也是整批拒
+    if (new Set(picked.map((p) => p.storeId || currentId)).size > 1) {
+      setNotice({ ok: false, text: '所选商品分属多家门店，一次只能加入同一家门店的车' })
+      return
+    }
     setBusy(true)
     try {
-      await addItems(selectedIds.map((id) => ({ product_id: id, qty: 1 })))
+      const switched = await ensureStore(picked[0]?.storeId)
+      const prefix = switched ? `已切换到「${switched.storeName}」，` : ''
+      await addItems(ids.map((id) => ({ product_id: id, qty: 1 })))
       setSelected(new Set())
-      setNotice({ ok: true, text: '已加入购物车' })
+      try {
+        await removeFavorites.mutateAsync(ids)
+        setNotice({ ok: true, text: `${prefix}已加入购物车，并移出收藏 (${ids.length})` })
+      } catch (err) {
+        setNotice({
+          ok: true,
+          text: `${prefix}已加入购物车，但取消收藏失败：${err instanceof Error ? err.message : '请稍后手动移除'}`,
+        })
+      }
     } catch (err) {
       setNotice({ ok: false, text: err instanceof Error ? err.message : '加入购物车失败，请重试' })
     } finally {
@@ -203,7 +242,7 @@ function Favorites() {
         </p>
       )}
 
-      {isError && <QueryError error={error} onRetry={refetch} className="mt-6 mx-[30px]" />}
+      {isError && data.length === 0 && <QueryError error={error} onRetry={refetch} className="mt-6 mx-[30px]" />}
       {isPending && (
         <div className="mt-4 px-[29px]">
           {Array.from({ length: 4 }, (_, i) => (
@@ -241,6 +280,11 @@ function Favorites() {
                 removing={removingId === p.id}
                 disabled={removeFavorites.isPending}
                 soldOut={p.stock <= 0}
+                storeName={
+                  currentId && p.storeId && p.storeId !== currentId
+                    ? (stores.find((item) => item.id === p.storeId)?.name ?? '其他门店')
+                    : ''
+                }
                 onToggle={() => toggleItem(p.id)}
                 onRemove={() => removeOne(p)}
                 onOpen={() => navigate(`/product/${p.id}`)}
